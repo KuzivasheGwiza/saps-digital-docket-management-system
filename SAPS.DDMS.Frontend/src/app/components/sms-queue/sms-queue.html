@@ -1,0 +1,80 @@
+<div class="sms-page">
+  <div class="page-header">
+    <div>
+      <h1><i class="fas fa-sms"></i> SMS Queue</h1>
+      <p>Review generated SMS messages before manual dispatch or gateway confirmation.</p>
+    </div>
+    <button type="button" class="btn-secondary" (click)="loadQueue()">
+      <i class="fas fa-sync-alt"></i> Refresh
+    </button>
+  </div>
+
+  <div class="notice">
+    <i class="fas fa-info-circle"></i>
+    LocalQueue mode keeps messages auditable inside SAPS DDMS. Connect a provider in API configuration to send through an HTTP SMS gateway.
+  </div>
+
+  <div class="filter-bar">
+    <label>
+      Status
+      <select [(ngModel)]="statusFilter" (change)="loadQueue()">
+        <option value="">All</option>
+        <option>Queued - Local Approval</option>
+        <option>Queued - Gateway Not Configured</option>
+        <option>Sent - Gateway</option>
+        <option>Sent - Manual Dispatch</option>
+        <option>Not Queued - Missing Number</option>
+        <option>Cancelled</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="loading" *ngIf="isLoading">
+    <i class="fas fa-spinner fa-spin"></i> Loading SMS queue...
+  </div>
+  <div class="queue-error" *ngIf="!isLoading && errorMessage" role="alert">
+    {{ errorMessage }}
+    <button type="button" (click)="loadQueue()">Try again</button>
+  </div>
+
+  <div class="queue-table" *ngIf="!isLoading && !errorMessage && items.length">
+    <table>
+      <thead>
+        <tr>
+          <th>Purpose</th>
+          <th>Recipient</th>
+          <th>Message</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of items">
+          <td>
+            <strong>{{ item.purpose }}</strong>
+            <small>{{ item.userName || 'System' }}</small>
+          </td>
+          <td>{{ item.recipientNumber || 'No number' }}</td>
+          <td class="message-cell">{{ item.message }}</td>
+          <td><span class="status-pill" [ngClass]="statusClass(item)">{{ item.status }}</span></td>
+          <td>{{ item.createdAt | date:'yyyy-MM-dd HH:mm' }}</td>
+          <td>
+            <button type="button" class="btn-sm" *ngIf="canDispatch(item)" (click)="markDispatched(item)" [disabled]="isUpdating(item)">
+              <i class="fas fa-check"></i> {{ isUpdating(item) ? 'Updating...' : 'Mark dispatched' }}
+            </button>
+            <button type="button" class="btn-sm danger" *ngIf="item.status.startsWith('Queued')" (click)="cancel(item)" [disabled]="isUpdating(item)">
+              <i class="fas fa-ban"></i> Cancel
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && !errorMessage && !items.length">
+    <i class="fas fa-inbox"></i>
+    <h2>No SMS records</h2>
+    <p>New operational notification messages will appear here when generated.</p>
+  </div>
+</div>

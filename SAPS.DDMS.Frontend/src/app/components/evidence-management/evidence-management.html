@@ -1,0 +1,388 @@
+<!-- src/app/components/evidence-management/evidence-management.html -->
+<div class="evidence-management">
+    <div class="page-header">
+        <div>
+            <h2>Evidence Management</h2>
+            <p class="page-subtitle">Capture evidence against the correct docket with structured collection methods, item states and retention details.</p>
+        </div>
+        <div class="page-header-actions">
+            <a class="btn-secondary" [routerLink]="['/help']" [queryParams]="{ topic: 'evidence' }">
+                <i class="fas fa-circle-info"></i> Evidence Help
+            </a>
+            <button class="btn-primary" (click)="openCreateModal()" *ngIf="canCreateEvidence && selectedDocketId">
+                <i class="fas fa-plus"></i> Add Evidence
+            </button>
+        </div>
+    </div>
+    
+    <!-- Docket Selector -->
+    <div class="docket-selector">
+        <label for="selectedDocketId">Select Docket:</label>
+        <select id="selectedDocketId" title="Select Docket" [(ngModel)]="selectedDocketId" (change)="onDocketChange()">
+            <option [ngValue]="0">-- Select Docket --</option>
+            <option *ngFor="let docket of dockets" [ngValue]="docket.docketID">
+                {{ getDocketDisplayName(docket) }}
+            </option>
+        </select>
+    </div>
+
+    <section class="docket-summary-card" *ngIf="selectedDocket">
+        <div class="summary-header">
+            <div>
+                <h3>{{ getDocketSubjectLabel(selectedDocket) }}</h3>
+                <p>Docket no. {{ selectedDocket.docketNumber }}</p>
+            </div>
+            <div class="summary-meta">
+                <span>Status: {{ selectedDocket.status }}</span>
+                <span>OB: {{ selectedDocket.obReferenceNumber }}</span>
+            </div>
+        </div>
+        <p class="summary-description">{{ selectedDocket.docketSummary || 'No docket summary captured for this file yet.' }}</p>
+    </section>
+    
+    <!-- Evidence List -->
+    <div class="evidence-list" *ngIf="selectedDocketId && !isLoading">
+        <div class="evidence-grid" *ngIf="evidenceList.length > 0">
+            <div class="evidence-card" *ngFor="let evidence of evidenceList">
+                <div class="evidence-image" *ngIf="evidence.imageUrl && !isPdfEvidence(evidence) && !isVideoEvidence(evidence)">
+                    <img [src]="evidence.imageUrl" alt="Evidence Image">
+                </div>
+                <video class="evidence-video" *ngIf="evidence.imageUrl && isVideoEvidence(evidence)" [src]="evidence.imageUrl" controls preload="metadata" aria-label="Video evidence"></video>
+                <a class="evidence-image-placeholder evidence-pdf" *ngIf="evidence.imageUrl && isPdfEvidence(evidence)" [href]="evidence.imageUrl" target="_blank" rel="noopener" title="Open evidence PDF">
+                    <i class="fas fa-file-pdf"></i><span>PDF evidence</span>
+                </a>
+                <div class="evidence-image-placeholder" *ngIf="!evidence.imageUrl">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div class="evidence-info">
+                    <h4>{{ evidence.evidenceReferenceNumber }}</h4>
+                    <p>{{ evidence.description | slice:0:50 }}...</p>
+                    <div class="evidence-meta">
+                        <span class="badge">{{ evidence.evidenceType }}</span>
+                        <span>Qty: {{ evidence.quantity }}</span>
+                        <span>Location: {{ evidence.evidenceLocation }}</span>
+                        <span class="retention-badge">{{ getRetentionStatus(evidence) }}</span>
+                    </div>
+                    <p class="policy-note">Retention review: {{ getRetentionReviewDate(evidence) | date:'yyyy-MM-dd' }}</p>
+                    <div class="evidence-actions">
+                        <button type="button" class="btn-icon" (click)="viewEvidenceDetails(evidence)" title="View evidence" aria-label="View evidence">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button type="button" class="btn-icon" (click)="openEditModal(evidence)" title="Edit evidence" aria-label="Edit evidence" *ngIf="canEditEvidence">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" class="btn-icon" (click)="openTransferModal(evidence)" title="Record transfer" aria-label="Record evidence transfer" *ngIf="canTransferEvidence">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
+                        <button type="button" class="btn-icon" (click)="loadCustodyHistory(evidence)" title="Chain of custody" aria-label="View chain of custody" *ngIf="canViewCustodyHistory">
+                            <i class="fas fa-history"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="no-data" *ngIf="evidenceList.length === 0">
+            <i class="fas fa-box-open"></i>
+            <p>No evidence found for this docket</p>
+            <button class="btn-primary" (click)="openCreateModal()" *ngIf="canCreateEvidence">
+                Add Evidence
+            </button>
+        </div>
+    </div>
+    
+    <div class="loading-spinner" *ngIf="isLoading">
+        <i class="fas fa-spinner fa-spin"></i> Loading...
+    </div>
+</div>
+
+<!-- Create Evidence Modal -->
+<div class="modal" [class.show]="showCreateModal" *ngIf="showCreateModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Register Evidence</h3>
+            <button type="button" class="close" (click)="closeCreateModal()" aria-label="Close register evidence dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p *ngIf="selectedDocket"><strong>Case file:</strong> {{ getDocketDisplayName(selectedDocket) }}</p>
+            <p *ngIf="selectedDocket"><strong>Docket description:</strong> {{ selectedDocket.docketSummary || 'No docket summary captured.' }}</p>
+            <form [formGroup]="createForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="createEvidenceTypeID">Evidence Type *</label>
+                        <select id="createEvidenceTypeID" formControlName="evidenceTypeID" title="Evidence Type">
+                            <option [ngValue]="null">Select Type</option>
+                            <option *ngFor="let type of evidenceTypes" [ngValue]="type.evidenceTypeID">
+                                {{ type.name }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="createQuantity">Number of items *</label>
+                        <input id="createQuantity" type="number" formControlName="quantity" min="1" max="1000000" step="1" title="Number of items" placeholder="Enter item count"
+                               [class.is-invalid]="createForm.get('quantity')?.invalid && createForm.get('quantity')?.touched">
+                        <div class="invalid-feedback" *ngIf="createForm.get('quantity')?.invalid && createForm.get('quantity')?.touched">
+                            Number of items must be a whole number between 1 and 1,000,000.
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="createDescription">Description *</label>
+                    <textarea id="createDescription" formControlName="description" minlength="3" maxlength="2000" rows="3" title="Description" placeholder="Describe this evidence item"
+                              [class.is-invalid]="createForm.get('description')?.invalid && createForm.get('description')?.touched"></textarea>
+                    <div class="invalid-feedback" *ngIf="createForm.get('description')?.invalid && createForm.get('description')?.touched">
+                        Enter a meaningful description between 3 and 2,000 characters; spaces alone are not accepted.
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="createDateCollected">Date Collected *</label>
+                        <input id="createDateCollected" type="datetime-local" formControlName="dateCollected" [max]="maxCollectedDateTime" title="Date Collected"
+                               [class.is-invalid]="createForm.get('dateCollected')?.invalid && createForm.get('dateCollected')?.touched">
+                        <div class="invalid-feedback" *ngIf="createForm.get('dateCollected')?.invalid && createForm.get('dateCollected')?.touched">
+                            Collection date is required and cannot be in the future.
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="createCollectionMethod">Collection Method *</label>
+                        <select id="createCollectionMethod" formControlName="collectionMethod" title="Collection Method">
+                            <option value="">Select collection method</option>
+                            <option *ngFor="let method of evidenceCollectionMethods" [value]="method">{{ method }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="createStateOfItem">State of Item *</label>
+                        <select id="createStateOfItem" formControlName="stateOfItem" title="State of Item">
+                            <option value="">Select state of item</option>
+                            <option *ngFor="let state of evidenceItemStates" [value]="state">{{ state }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="createEvidenceLocationID">Storage Location *</label>
+                        <select id="createEvidenceLocationID" formControlName="evidenceLocationID" title="Storage Location">
+                            <option [ngValue]="null">Select Location</option>
+                            <option *ngFor="let loc of evidenceLocations" [ngValue]="loc.evidenceLocationID">
+                                {{ loc.locationName }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="createSignatureMethod">Signature Method *</label>
+                    <select id="createSignatureMethod" formControlName="signatureMethod" title="Signature Method">
+                        <option value="Ink">Ink</option>
+                        <option value="Stylus">Stylus</option>
+                        <option value="Smartcard">Smartcard</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="createEvidenceFile">Evidence Files (Optional)</label>
+                    <input id="createEvidenceFile" type="file" (change)="onFileSelected($event)" accept="image/jpeg,image/png,image/gif,application/pdf,video/mp4,video/webm,video/quicktime,video/x-msvideo,.pdf,.mp4,.webm,.mov,.avi" title="Evidence file"
+                           [class.is-invalid]="!!fileValidationMessage">
+                    <div class="invalid-feedback" *ngIf="fileValidationMessage">{{ fileValidationMessage }}</div>
+                    <small>Images, PDF documents and videos (MP4, WebM, MOV or AVI); maximum size 50 MB.</small>
+                    <div class="image-preview" *ngIf="imagePreviewUrl">
+                        <img [src]="imagePreviewUrl" alt="Evidence file preview">
+                    </div>
+                    <div class="file-preview" *ngIf="selectedEvidenceFile?.type === 'application/pdf'"><i class="fas fa-file-pdf"></i><span>{{ selectedEvidenceFile?.name }}</span></div>
+                    <div class="file-preview" *ngIf="selectedEvidenceFile?.type?.startsWith('video/')"><i class="fas fa-file-video"></i><span>{{ selectedEvidenceFile?.name }}</span></div>
+                    <small class="hash-note"><i class="fas fa-shield-halved"></i> A SHA-256 payload hash will be generated automatically when the evidence is registered.</small>
+                </div>
+                <input type="hidden" formControlName="docketID">
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="closeCreateModal()" [disabled]="isLoading">Cancel</button>
+            <button type="button" class="btn-primary" (click)="createEvidence()" [disabled]="createForm.invalid || isLoading || !!fileValidationMessage">
+                {{ isLoading ? 'Registering...' : 'Register Evidence' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Evidence Modal -->
+<div class="modal" [class.show]="showEditModal" *ngIf="showEditModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Update Evidence</h3>
+            <button type="button" class="close" (click)="closeEditModal()" aria-label="Close edit evidence dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p *ngIf="selectedDocket"><strong>Case file:</strong> {{ getDocketDisplayName(selectedDocket) }}</p>
+            <form [formGroup]="editForm">
+                <div class="form-group">
+                    <label for="editDescription">Description *</label>
+                    <textarea id="editDescription" formControlName="description" minlength="3" maxlength="2000" rows="3" title="Description" placeholder="Enter evidence description"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editQuantity">Number of items *</label>
+                        <input id="editQuantity" type="number" formControlName="quantity" min="1" max="1000000" step="1" title="Number of items" placeholder="Enter item count">
+                    </div>
+                    <div class="form-group">
+                        <label for="editCollectionMethod">Collection Method *</label>
+                        <select id="editCollectionMethod" formControlName="collectionMethod" title="Collection Method">
+                            <option value="">Select collection method</option>
+                            <option *ngFor="let method of evidenceCollectionMethods" [value]="method">{{ method }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editStateOfItem">State of Item *</label>
+                        <select id="editStateOfItem" formControlName="stateOfItem" title="State of Item">
+                            <option value="">Select state of item</option>
+                            <option *ngFor="let state of evidenceItemStates" [value]="state">{{ state }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Storage Location</label>
+                        <input type="hidden" formControlName="evidenceLocationID">
+                        <div class="readonly-field">{{ selectedEvidence?.evidenceLocation }}</div>
+                        <small>Use Record Transfer to change location and preserve chain of custody.</small>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editSignatureMethod">Signature Method *</label>
+                        <select id="editSignatureMethod" formControlName="signatureMethod" title="Signature Method">
+                            <option value="Ink">Ink</option>
+                            <option value="Stylus">Stylus</option>
+                            <option value="Smartcard">Smartcard</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPayloadHash">System-generated Payload Hash</label>
+                        <input id="editPayloadHash" type="text" formControlName="payloadHash" readonly title="System-generated SHA-256 payload hash">
+                        <small>This integrity value is generated automatically and cannot be edited.</small>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Reason for Update *</label>
+                    <textarea formControlName="reasonForUpdate" minlength="10" maxlength="500" rows="2" placeholder="Minimum 10 characters"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="closeEditModal()" [disabled]="isLoading">Cancel</button>
+            <button type="button" class="btn-primary" (click)="updateEvidence()" [disabled]="editForm.invalid || isLoading">
+                {{ isLoading ? 'Updating...' : 'Update Evidence' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Evidence Details Modal -->
+<div class="modal" [class.show]="showDetailsModal" *ngIf="showDetailsModal && selectedEvidence">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Evidence Details</h3>
+            <button type="button" class="close" (click)="closeDetailsModal()" aria-label="Close evidence details dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="evidence-detail-image" *ngIf="selectedEvidence.imageUrl && !isPdfEvidence(selectedEvidence)">
+                <img [src]="selectedEvidence.imageUrl" alt="Evidence">
+            </div>
+            <a class="file-preview detail-file" *ngIf="selectedEvidence.imageUrl && isPdfEvidence(selectedEvidence)" [href]="selectedEvidence.imageUrl" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i><span>Open evidence PDF</span></a>
+            <div class="details-grid">
+                <div><strong>Reference Number:</strong> {{ selectedEvidence.evidenceReferenceNumber }}</div>
+                <div><strong>Description:</strong> {{ selectedEvidence.description }}</div>
+                <div><strong>Evidence Type:</strong> {{ selectedEvidence.evidenceType }}</div>
+                <div><strong>Number of items:</strong> {{ selectedEvidence.quantity }}</div>
+                <div><strong>Date Collected:</strong> {{ selectedEvidence.dateCollected ? (selectedEvidence.dateCollected | date:'yyyy-MM-dd HH:mm') : 'Unavailable' }}</div>
+                <div><strong>Collection Method:</strong> {{ selectedEvidence.collectionMethod || '-' }}</div>
+                <div><strong>State of Item:</strong> {{ selectedEvidence.stateOfItem || '-' }}</div>
+                <div><strong>Storage Location:</strong> {{ selectedEvidence.evidenceLocation }}</div>
+                <div><strong>Signature Method:</strong> {{ selectedEvidence.signatureMethod || '-' }}</div>
+                <div><strong>Payload Hash:</strong> {{ selectedEvidence.payloadHash || '-' }}</div>
+                <div><strong>Retention Rule:</strong> {{ evidenceRetentionYears }} years</div>
+                <div><strong>Retention Review:</strong> {{ (getRetentionReviewDate(selectedEvidence) | date:'yyyy-MM-dd') || 'Unavailable' }} ({{ getRetentionStatus(selectedEvidence) }})</div>
+            </div>
+            <div class="details-section" *ngIf="custodyHistory.length">
+                <h4>Chain of Custody</h4>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>User</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Signature</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of custodyHistory">
+                            <td>{{ (item.transferDate || item.date) | date:'yyyy-MM-dd HH:mm' }}</td>
+                            <td>{{ item.userName || item.transferredBy || '-' }}</td>
+                            <td>{{ item.fromLocation || '-' }}</td>
+                            <td>{{ item.toLocation || '-' }}</td>
+                            <td>{{ item.signatureMethod || '-' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" (click)="closeDetailsModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Evidence Transfer Modal -->
+<div class="modal" [class.show]="showTransferModal" *ngIf="showTransferModal && selectedEvidence">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Record Evidence Transfer</h3>
+            <button type="button" class="close" (click)="closeTransferModal()" aria-label="Close evidence transfer dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p><strong>Evidence:</strong> {{ selectedEvidence.evidenceReferenceNumber }}</p>
+            <form [formGroup]="transferForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>From Location *</label>
+                        <input type="hidden" formControlName="fromLocationID">
+                        <div class="readonly-field">{{ getLocationName(transferForm.get('fromLocationID')?.value) || selectedEvidence.evidenceLocation }}</div>
+                        <small>The source location is locked to the evidence's current storage location.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>To Location *</label>
+                        <select formControlName="toLocationID" title="To Location">
+                            <option [ngValue]="null">Select Location</option>
+                            <option *ngFor="let loc of evidenceLocations" [ngValue]="loc.evidenceLocationID">{{ loc.locationName }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Receiving Officer *</label>
+                    <input type="hidden" formControlName="receivingOfficerUserID">
+                    <div class="readonly-field">{{ currentUserDisplayName }}</div>
+                    <small>The signed-in authorised user is recorded as the receiving officer for this transfer.</small>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Signature Method *</label>
+                        <select formControlName="signatureMethod" title="Signature Method">
+                            <option value="Ink">Ink</option>
+                            <option value="Stylus">Stylus</option>
+                            <option value="Smartcard">Smartcard</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Payload Hash / Checksum</label>
+                        <input type="text" maxlength="256" formControlName="payloadHash" placeholder="Checksum where available">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Transfer Reason *</label>
+                    <textarea rows="3" minlength="10" maxlength="500" formControlName="transferReason" placeholder="Minimum 10 characters"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="closeTransferModal()" [disabled]="isLoading">Cancel</button>
+            <button type="button" class="btn-primary" (click)="recordTransfer()" [disabled]="transferForm.invalid || isLoading">{{ isLoading ? 'Recording...' : 'Record Transfer' }}</button>
+        </div>
+    </div>
+</div>

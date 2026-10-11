@@ -1,0 +1,1068 @@
+<!-- src/app/components/docket-management/docket-management.html -->
+<div class="docket-management">
+    <div class="page-header">
+        <div>
+            <h2>Docket Management</h2>
+            <p class="page-subtitle">Create, allocate, track and review digital docket files from one controlled register.</p>
+        </div>
+        <div class="page-header-actions">
+            <button class="btn-primary" (click)="openCreateModal()" *ngIf="canCreateDocket">
+                <i class="fas fa-plus"></i> Create Docket
+            </button>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="filters-bar">
+        <div class="search-bar">
+            <input type="text" 
+                   aria-label="Search dockets"
+                   placeholder="Search by Docket No, OB, Suspect..."
+                   [(ngModel)]="searchTerm"
+                   (input)="onSearch()">
+            <i class="fas fa-search"></i>
+        </div>
+        <div class="status-filter">
+            <label for="docket-status-filter">Status</label>
+            <select id="docket-status-filter" [(ngModel)]="selectedStatus" (change)="onStatusChange()" title="Filter by status">
+                <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
+            </select>
+        </div>
+    </div>
+    
+    <!-- Dockets Table -->
+    <div class="dockets-table" *ngIf="!isLoading">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th class="case-file-column">Case / docket</th>
+                    <th class="reference-column">References</th>
+                    <th class="status-column">Status</th>
+                    <th class="allocation-column">Allocation</th>
+                    <th>Inspection</th>
+                    <th>Created</th>
+                    <th class="actions-column">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let docket of filteredDockets">
+                    <td data-label="Case file name">
+                        <div class="docket-title">
+                            <strong>{{ getDocketSubjectLabel(docket) }}</strong>
+                            <small>{{ docket.docketNumber }}</small>
+                        </div>
+                    </td>
+                    <td data-label="References">
+                        <div class="reference-stack"><span><small>OB</small>{{ docket.obReferenceNumber }}</span><span><small>FIC</small>{{ docket.ficReferenceNumber || '—' }}</span></div>
+                    </td>
+                    <td class="status-cell" data-label="Status">
+                        <span [class]="getStatusBadgeClass(docket.status)">{{ docket.status }}</span>
+                    </td>
+                    <td data-label="Allocation">
+                        <div class="allocation-state" *ngIf="docket.allocationReviewStatus; else unallocatedState">
+                            <span class="allocation-badge"
+                                  [class.allocation-approved]="!!docket.assignmentAcceptedAt"
+                                  [class.allocation-pending]="isAwaitingOfficerResponse(docket)"
+                                  [class.allocation-rejected]="docket.allocationReviewStatus === 'Officer Rejected'">
+                                <i class="fas"
+                                   [class.fa-circle-check]="!!docket.assignmentAcceptedAt"
+                                   [class.fa-clock]="isAwaitingOfficerResponse(docket)"
+                                   [class.fa-circle-xmark]="docket.allocationReviewStatus === 'Officer Rejected'"
+                                   aria-hidden="true"></i>
+                                {{ getAllocationDisplayStatus(docket) }}
+                            </span>
+                            <small *ngIf="isAwaitingOfficerResponse(docket)">Awaiting assigned officer response</small>
+                        </div>
+                        <ng-template #unallocatedState>
+                            <span class="allocation-badge allocation-unassigned"><i class="fas fa-minus" aria-hidden="true"></i> Not allocated</span>
+                        </ng-template>
+                    </td>
+                    <td data-label="Inspection SLA">
+                        <span [class]="getInspectionClass(docket)">{{ getInspectionStatus(docket) }}</span>
+                        <small class="policy-note" *ngIf="docket.inspectionDueAt && !docket.inspectionCompletedAt">
+                            Reminder window: {{ runtimePolicies.inspectionReminderHours }}h before SLA
+                        </small>
+                    </td>
+                    <td data-label="Created"><div class="created-stack"><span>{{ docket.dateCreated | date:'dd MMM yyyy' }}</span><small>{{ docket.createdByName }}</small></div></td>
+                    <td class="actions-cell" data-label="Actions">
+                        <div class="actions-list">
+                            <button class="btn-view" (click)="viewDocketDetails(docket)" title="View docket">
+                                <i class="fas fa-eye" aria-hidden="true"></i><span>View</span>
+                            </button>
+                            <button class="btn-update" (click)="openEditModal(docket)" *ngIf="!isDocketAdministrator && canUpdateDocket" [disabled]="!canUpdateDocketRecord(docket)" [title]="canUpdateDocketRecord(docket) ? 'Update docket' : 'This docket cannot be updated because it is closed, archived, or was created by another CSC Officer'">
+                                <i class="fas fa-pen" aria-hidden="true"></i><span>Update</span>
+                            </button>
+                            <button class="btn-archive" (click)="openArchiveModal(docket)" *ngIf="canArchiveDocket" [disabled]="!canArchiveByPolicy(docket)" [title]="getArchiveEligibilityText(docket)">
+                                <i class="fas fa-box-archive" aria-hidden="true"></i><span>Archive</span>
+                            </button>
+                            <details class="actions-menu" *ngIf="hasSecondaryDocketActions(docket)">
+                                <summary title="More actions" aria-label="More actions"><i class="fas fa-ellipsis-vertical" aria-hidden="true"></i></summary>
+                                <div class="actions-menu-panel">
+                            <span class="actions-menu-heading">Docket actions</span>
+                            <button class="btn-icon" (click)="openAllocateModal(docket)" 
+                                    *ngIf="!isDocketAdministrator && canInitialAllocate(docket)" title="Allocate">
+                                <i class="fas fa-user-plus" aria-hidden="true"></i><span>Allocate docket</span>
+                            </button>
+                            <button class="btn-icon" (click)="openReassignModal(docket)"
+                                    *ngIf="!isDocketAdministrator && canReassignDocket(docket)" title="Reassign docket">
+                                <i class="fas fa-user-pen" aria-hidden="true"></i><span>Reassign docket</span>
+                            </button>
+                            <button class="btn-icon" (click)="acceptAssignment(docket)"
+                                    *ngIf="!isDocketAdministrator && canAcceptAssignment && isCurrentOfficerAssignment(docket) && docket.status === 'ALLOCATED' && !docket.assignmentAcceptedAt" title="Accept Assignment">
+                                <i class="fas fa-circle-check" aria-hidden="true"></i><span>Accept assignment</span>
+                            </button>
+                            <button class="btn-icon menu-warning" (click)="rejectAssignment(docket)"
+                                    *ngIf="!isDocketAdministrator && canAcceptAssignment && isCurrentOfficerAssignment(docket) && docket.status === 'ALLOCATED' && !docket.assignmentAcceptedAt" title="Reject Assignment">
+                                <i class="fas fa-circle-xmark" aria-hidden="true"></i><span>Reject assignment</span>
+                            </button>
+                            <button class="btn-icon" (click)="openInspectionModal(docket)"
+                                    *ngIf="!isDocketAdministrator && canCompleteInspection && docket.assignmentAcceptedAt && !docket.inspectionCompletedAt" title="Complete 24-hour Inspection">
+                                <i class="fas fa-magnifying-glass" aria-hidden="true"></i><span>Complete inspection</span>
+                            </button>
+                            <button class="btn-icon" (click)="openBundleModal(docket)" *ngIf="!isDocketAdministrator && canManageBundles" title="Prosecutor Bundle, Privacy and AI">
+                                <i class="fas fa-file-zipper" aria-hidden="true"></i><span>View bundle</span>
+                            </button>
+                            <button class="btn-icon" type="button" *ngIf="!isDocketAdministrator && canAccessNotes" (click)="openNotesForDocket(docket)" title="Open investigation notes">
+                                <i class="fas fa-note-sticky" aria-hidden="true"></i><span>View notes</span>
+                            </button>
+                            <button class="btn-icon" type="button" *ngIf="canAccessEvidence" (click)="openEvidenceForDocket(docket)" title="Open evidence for this docket">
+                                <i class="fas fa-box-archive" aria-hidden="true"></i><span>View evidence</span>
+                            </button>
+                            <!-- UC 3.4 — Archive Docket (Docket Admin / SysAdmin only, status CLOSED) -->
+                            <!-- UC 8.1 — Record Court Outcome (DSC Supervisor, status CLOSED) -->
+                            <button class="btn-icon menu-warning" (click)="closeCase(docket)"
+                                    *ngIf="!isDocketAdministrator && canCloseOrReopenDocket && docket.status === 'COURT_OUTCOME_RECORDED'"
+                                    title="Close Case">
+                                <i class="fas fa-lock" aria-hidden="true"></i><span>Close docket</span>
+                            </button>
+                            <button class="btn-icon" (click)="reopenCase(docket)"
+                                    *ngIf="!isDocketAdministrator && canCloseOrReopenDocket && (docket.status === 'CLOSED' || docket.status === 'ARCHIVED')"
+                                    title="Reopen Case">
+                                <i class="fas fa-lock-open" aria-hidden="true"></i><span>Reopen docket</span>
+                            </button>
+                            <button class="btn-icon" (click)="openCourtOutcomeModal(docket)"
+                                    *ngIf="!isDocketAdministrator && canRecordCourtOutcome && docket.status === 'PENDING_PROSECUTOR'"
+                                    title="Record Court Outcome">
+                                <i class="fas fa-gavel" aria-hidden="true"></i><span>Record court outcome</span>
+                            </button>
+                                </div>
+                            </details>
+                        </div>
+                    </td>
+                </tr>
+                <tr *ngIf="filteredDockets.length === 0">
+                    <td colspan="7" class="no-data">No dockets found</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="loading-spinner" *ngIf="isLoading">
+        <i class="fas fa-spinner fa-spin"></i> Loading...
+    </div>
+</div>
+
+<!-- Prosecutor Bundle, Privacy and AI Modal -->
+<div class="modal" [class.show]="showBundleModal" *ngIf="showBundleModal && selectedDocket">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h3>Prosecutor Bundle</h3>
+            <button type="button" class="close" (click)="closeBundleModal()" aria-label="Close prosecutor bundle dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="details-section" *ngIf="canCreateBundle">
+                <h4>Create Bundle</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" [(ngModel)]="bundleTitle" title="Bundle title">
+                    </div>
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <input type="text" [(ngModel)]="bundleNotes" title="Bundle notes">
+                    </div>
+                </div>
+                <button class="btn-primary" (click)="createProsecutorBundle()">Create Bundle</button>
+            </div>
+            <div class="details-section">
+                <h4>Existing Bundles</h4>
+                <table class="data-table" *ngIf="prosecutorBundles.length">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let bundle of prosecutorBundles">
+                            <td>{{ bundle.title }}</td>
+                            <td>{{ bundle.status }}</td>
+                            <td>{{ bundle.createdAt | date:'yyyy-MM-dd HH:mm' }}</td>
+                            <td class="bundle-actions">
+                                <button class="btn-secondary" (click)="openBundleView(bundle)">View</button>
+                                <button class="btn-secondary" *ngIf="canEditBundles && bundle.status === 'Draft'" (click)="updateBundle(bundle)">Edit</button>
+                                <button class="btn-secondary" *ngIf="canPrivacyFlag" (click)="manageBundlePrivacy(bundle)">Privacy Flags</button>
+                                <button class="btn-primary" *ngIf="canShareBundle && bundle.status === 'Draft'" (click)="openShareBundle(bundle)">Preview &amp; Share</button>
+                                <button class="btn-secondary" *ngIf="canDownloadSharedBundle && bundle.status === 'Shared'" (click)="downloadSharedBundle(bundle, 'PDF')">Download PDF</button>
+                                <button class="btn-secondary" *ngIf="canDownloadSharedBundle && bundle.status === 'Shared'" (click)="downloadSharedBundle(bundle, 'ZIP')">Download ZIP</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p *ngIf="!prosecutorBundles.length">No prosecutor bundles created yet.</p>
+                <div class="privacy-manifest-panel" *ngIf="selectedBundleForPrivacy && canPrivacyFlag">
+                    <h5>Bundle item privacy flags: {{ selectedBundleForPrivacy.title }}</h5>
+                    <p>Private entries are redacted in the prosecutor preview and all exports.</p>
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Clip</th><th>Order</th><th>Field / document</th><th>Status</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let item of selectedBundleForPrivacy.manifest">
+                                <td>{{ item.section }}</td>
+                                <td>{{ item.order }}</td>
+                                <td>{{ item.name }}</td>
+                                <td>
+                                    <span [class]="item.isPrivate ? 'status-badge status-review' : 'status-badge status-complete'">
+                                        {{ item.isPrivate ? 'Flagged' : 'Clear' }}
+                                    </span>
+                                    <div *ngIf="item.isPrivate && item.privacyReason" class="policy-note">
+                                        {{ item.privacyReason }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="btn-secondary" type="button" *ngIf="canActOnBundlePrivacyItem(item)" (click)="toggleBundleItemPrivacy(item)">
+                                        {{ getBundlePrivacyActionLabel(item) }}
+                                    </button>
+                                    <button class="btn-secondary" type="button" *ngIf="canReadBundlePrivacyFlagHistory" (click)="viewBundleItemPrivacyHistory(item)">
+                                        View Flag History
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="details-section bundle-history-panel" *ngIf="canReadBundlePrivacyFlagHistory && selectedBundleItemHistory">
+                        <h5>Privacy Flag History — {{ selectedBundleItemHistory.name }}</h5>
+                        <table class="data-table" *ngIf="bundleItemPrivacyHistory.length">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Action</th>
+                                    <th>Performed By</th>
+                                    <th>Date and Time</th>
+                                    <th>Reason / Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let historyItem of bundleItemPrivacyHistory; let index = index">
+                                    <td>{{ index + 1 }}</td>
+                                    <td>{{ historyItem.action }}</td>
+                                    <td>{{ historyItem.performedBy || historyItem.performedByUserID }}</td>
+                                    <td>{{ historyItem.performedAt | date:'yyyy-MM-dd HH:mm' }}</td>
+                                    <td>{{ historyItem.notes || '-' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p *ngIf="!bundleItemPrivacyHistory.length">No privacy flag history has been recorded for this item.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="details-section" *ngIf="canViewPrivacyHistory">
+                <h4>Privacy Flag</h4>
+                <button class="btn-primary" *ngIf="canPrivacyFlag" (click)="setPrivacyFlag(true)">Apply Flag</button>
+                <button class="btn-secondary" *ngIf="canPrivacyFlag" (click)="setPrivacyFlag(false)">Remove Flag</button>
+                <table class="data-table" *ngIf="privacyHistory.length">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Private</th>
+                            <th>Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of privacyHistory">
+                            <td>{{ item.timestamp | date:'yyyy-MM-dd HH:mm' }}</td>
+                            <td>{{ item.isPrivate ? 'Yes' : 'No' }}</td>
+                            <td>{{ item.reason }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="details-section" *ngIf="canRunAi">
+                <h4>AI Assistance</h4>
+                <button class="btn-primary" (click)="generateAiSummary()">Generate Summary</button>
+                <button class="btn-secondary" *ngIf="canVerifyAi" (click)="extractAiData()">Extract Data</button>
+                <button class="btn-secondary" *ngIf="canVerifyAi" (click)="verifyAiExtraction()" [disabled]="!aiExtractionFields.length">Verify Reviewed Data</button>
+                <button class="btn-secondary" (click)="suggestRelatedCases()">Related Cases</button>
+                <button class="btn-secondary" (click)="generateReadinessIntelligence()" [disabled]="readinessLoading">
+                    <i [class]="readinessLoading ? 'fas fa-spinner fa-spin' : 'fas fa-chart-line'" aria-hidden="true"></i>
+                    {{ readinessLoading ? 'Assessing readiness...' : 'Case Readiness Intelligence' }}
+                </button>
+                <section class="readiness-panel" *ngIf="readinessIntelligence" aria-live="polite">
+                    <div class="readiness-heading">
+                        <div>
+                            <small>Explainable decision support</small>
+                            <h5>Prosecution readiness: {{ readinessIntelligence.readinessBand }}</h5>
+                        </div>
+                        <div class="readiness-score" [class.score-high]="readinessIntelligence.score >= 80" [class.score-medium]="readinessIntelligence.score >= 55 && readinessIntelligence.score < 80">
+                            {{ readinessIntelligence.score }}<span>/100</span>
+                        </div>
+                    </div>
+                    <div class="readiness-progress" role="progressbar" aria-label="Case readiness score" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="readinessIntelligence.score">
+                        <span [style.width.%]="readinessIntelligence.score"></span>
+                    </div>
+                    <div class="readiness-metrics">
+                        <div><strong>{{ readinessIntelligence.metrics.integrityCoverage }}%</strong><span>Integrity hashes</span></div>
+                        <div><strong>{{ readinessIntelligence.metrics.custodyControlCoverage }}%</strong><span>Collection controls</span></div>
+                        <div><strong>{{ readinessIntelligence.metrics.activeInvestigationNotes }}</strong><span>Active notes</span></div>
+                        <div><strong>{{ readinessIntelligence.slaState }}</strong><span>SLA state</span></div>
+                    </div>
+                    <div class="readiness-findings" *ngIf="readinessIntelligence.blockers.length">
+                        <h6>Readiness blockers</h6>
+                        <ul><li *ngFor="let blocker of readinessIntelligence.blockers">{{ blocker }}</li></ul>
+                    </div>
+                    <div class="readiness-findings recommendations">
+                        <h6>Recommended next actions</h6>
+                        <ul><li *ngFor="let recommendation of readinessIntelligence.recommendations">{{ recommendation }}</li></ul>
+                    </div>
+                    <small class="readiness-limit">{{ readinessIntelligence.limitations }}</small>
+                </section>
+                <div class="form-group" *ngIf="aiSummary">
+                    <label for="ai-summary-review">Review and edit the generated summary</label>
+                    <textarea id="ai-summary-review" name="aiSummaryReview" [(ngModel)]="aiSummary" rows="8"></textarea>
+                    <button class="btn-secondary" type="button" (click)="confirmAiSummary()">Confirm Reviewed Summary</button>
+                    <small *ngIf="aiSummaryConfirmed">Human confirmation recorded in the audit trail.</small>
+                </div>
+                <section class="ai-extraction-review" *ngIf="aiExtractionFields.length" aria-labelledby="ai-extraction-title">
+                    <div class="ai-review-heading">
+                        <div>
+                            <small>Human verification required</small>
+                            <h5 id="ai-extraction-title">Review Extracted Docket Data</h5>
+                            <p>Compare every value with the source docket and correct it before verification.</p>
+                        </div>
+                        <button class="btn-secondary ai-technical-toggle" type="button" (click)="showAiTechnicalData = !showAiTechnicalData" [attr.aria-expanded]="showAiTechnicalData">
+                            <i class="fas fa-code" aria-hidden="true"></i>
+                            {{ showAiTechnicalData ? 'Hide technical data' : 'View technical data' }}
+                        </button>
+                    </div>
+                    <ng-container *ngFor="let section of aiExtractionSectionOrder">
+                        <fieldset class="ai-review-section" *ngIf="getAiExtractionFields(section).length">
+                            <legend>{{ section }}</legend>
+                            <div class="ai-review-grid">
+                                <div class="ai-review-field" *ngFor="let field of getAiExtractionFields(section)" [class.ai-review-field-wide]="field.inputType === 'textarea'">
+                                    <label [for]="'ai-field-' + field.key">{{ field.label }}</label>
+                                    <textarea *ngIf="field.inputType === 'textarea'" [id]="'ai-field-' + field.key" [name]="'aiField_' + field.key" [(ngModel)]="field.value" rows="4" [readonly]="field.readOnly" [class.is-invalid]="field.error"></textarea>
+                                    <input *ngIf="field.inputType !== 'textarea'" [id]="'ai-field-' + field.key" [name]="'aiField_' + field.key" [type]="field.inputType" [(ngModel)]="field.value" [readonly]="field.readOnly" [min]="field.inputType === 'number' ? 0 : null" [step]="field.inputType === 'number' ? 1 : null" [class.is-invalid]="field.error">
+                                    <small class="ai-readonly-note" *ngIf="field.readOnly"><i class="fas fa-lock" aria-hidden="true"></i> System identifier</small>
+                                    <div class="invalid-feedback visible" *ngIf="field.error" role="alert">{{ field.error }}</div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </ng-container>
+                    <div class="ai-technical-data" *ngIf="showAiTechnicalData">
+                        <div><strong>Technical payload preview</strong><span>Read-only</span></div>
+                        <pre>{{ aiTechnicalJson }}</pre>
+                    </div>
+                    <div class="ai-review-notice"><i class="fas fa-user-check" aria-hidden="true"></i> AI output is decision support only. Your verification is recorded in the audit trail.</div>
+                </section>
+                <section class="related-cases-review" *ngIf="relatedCaseReviewItems.length" aria-labelledby="related-cases-title">
+                    <div class="ai-review-heading">
+                        <div>
+                            <small>Human verification required</small>
+                            <h5 id="related-cases-title">Review Related Case Suggestions</h5>
+                            <p>Confirm why each suggested docket is relevant, or exclude suggestions that do not belong.</p>
+                        </div>
+                        <button class="btn-secondary ai-technical-toggle" type="button" (click)="showRelatedCasesTechnicalData = !showRelatedCasesTechnicalData" [attr.aria-expanded]="showRelatedCasesTechnicalData">
+                            <i class="fas fa-code" aria-hidden="true"></i>
+                            {{ showRelatedCasesTechnicalData ? 'Hide technical data' : 'View technical data' }}
+                        </button>
+                    </div>
+                    <article class="related-case-card" *ngFor="let item of relatedCaseReviewItems; let index = index" [class.related-case-excluded]="!item.included">
+                        <header>
+                            <div><span>Suggested case {{ index + 1 }}</span><strong>Docket #{{ item.relatedDocketId }}</strong></div>
+                            <label class="related-case-include"><input type="checkbox" [(ngModel)]="item.included" [name]="'includeRelatedCase' + index"> Include suggestion</label>
+                        </header>
+                        <div class="related-case-fields">
+                            <div class="ai-review-field">
+                                <label [for]="'related-case-score-' + index">Similarity score</label>
+                                <div class="related-score-input"><input [id]="'related-case-score-' + index" type="number" min="0" max="1" step="0.01" [(ngModel)]="item.score" [name]="'relatedCaseScore' + index" [disabled]="!item.included" [class.is-invalid]="item.scoreError"><span>{{ getRelatedCaseScorePercent(item) }}%</span></div>
+                                <div class="invalid-feedback visible" *ngIf="item.scoreError" role="alert">{{ item.scoreError }}</div>
+                            </div>
+                            <div class="ai-review-field related-reason-field">
+                                <label [for]="'related-case-reason-' + index">Reason for relationship</label>
+                                <textarea [id]="'related-case-reason-' + index" rows="3" maxlength="500" [(ngModel)]="item.reason" [name]="'relatedCaseReason' + index" [disabled]="!item.included" [class.is-invalid]="item.reasonError"></textarea>
+                                <div class="invalid-feedback visible" *ngIf="item.reasonError" role="alert">{{ item.reasonError }}</div>
+                            </div>
+                        </div>
+                    </article>
+                    <div class="ai-technical-data" *ngIf="showRelatedCasesTechnicalData"><div><strong>Technical payload preview</strong><span>Read-only</span></div><pre>{{ relatedCasesTechnicalJson }}</pre></div>
+                    <div class="related-case-actions"><div class="ai-review-notice"><i class="fas fa-user-check" aria-hidden="true"></i> Only included suggestions will be confirmed and audited.</div><button class="btn-primary" type="button" (click)="confirmRelatedCases()">Confirm Reviewed Related Cases</button></div>
+                </section>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" (click)="closeBundleModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal show" *ngIf="shareBundleCandidate">
+    <div class="modal-content modal-large" role="dialog" aria-modal="true" aria-labelledby="share-bundle-title">
+        <div class="modal-header">
+            <h3 id="share-bundle-title">Share with Prosecutor</h3>
+            <button type="button" class="close" (click)="closeShareBundle()" aria-label="Close sharing dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p><strong>{{ shareBundleCandidate.title }}</strong></p>
+            <p class="policy-note">Review the exact disclosed snapshot below. Private fields are redacted, and sharing makes this bundle version immutable.</p>
+            <p class="alert alert-error" *ngIf="shareWorkflowError" role="alert">{{ shareWorkflowError }}</p>
+            <table class="data-table" *ngIf="sharePreview?.manifest?.length">
+                <thead><tr><th>Clip</th><th>Order</th><th>Disclosed document</th><th>Privacy</th></tr></thead>
+                <tbody><tr *ngFor="let item of sharePreview.manifest">
+                    <td>{{ item.section }}</td><td>{{ item.order }}</td><td>{{ item.name }}</td><td>{{ item.isPrivate ? 'Redacted' : 'Disclosed' }}</td>
+                </tr></tbody>
+            </table>
+            <p *ngIf="isLoadingSharePreview">Preparing the disclosure preview...</p>
+            <div class="form-group">
+                <label for="share-prosecutor">Recipient Prosecutor *</label>
+                <select id="share-prosecutor" [(ngModel)]="selectedProsecutorUserID">
+                    <option [ngValue]="null">Select an active prosecutor</option>
+                    <option *ngFor="let prosecutor of eligibleProsecutors" [ngValue]="prosecutor.userID">
+                        {{ prosecutor.name }} — {{ prosecutor.personnelNumber || prosecutor.emailAddress }}
+                    </option>
+                </select>
+                <small *ngIf="sharePreview && !eligibleProsecutors.length" class="invalid-feedback" style="display:block;">No active prosecutors are available at this docket's station.</small>
+            </div>
+            <div class="form-group">
+                <label for="share-note">Sharing note</label>
+                <textarea id="share-note" [(ngModel)]="shareNote" maxlength="500" rows="3" placeholder="Optional instructions for the prosecutor"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" type="button" (click)="closeShareBundle()">Cancel</button>
+            <button class="btn-primary" type="button" (click)="confirmShareBundle()" [disabled]="!sharePreview || !selectedProsecutorUserID || isSharingBundle || !!shareWorkflowError">
+                {{ isSharingBundle ? 'Sharing...' : 'Confirm & Share' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" [class.show]="showBundleViewModal" *ngIf="showBundleViewModal && selectedBundleDetails">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h3>Prosecutor Bundle — {{ selectedBundleDetails.bundleID || selectedBundleDetails.bundleId }}</h3>
+            <button type="button" class="close" (click)="closeBundleViewModal()" aria-label="Close bundle detail dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="details-grid">
+                <div><strong>Status:</strong> {{ selectedBundleDetails.status }}</div>
+                <div><strong>Version:</strong> {{ selectedBundleDetails.version }}</div>
+                <div><strong>Created:</strong> {{ selectedBundleDetails.createdAt | date:'yyyy-MM-dd HH:mm' }}</div>
+            </div>
+            <div class="details-section">
+                <h4>AI-Generated Summary</h4>
+                <textarea rows="8" [value]="selectedBundleDetails.aiSummaryText || selectedBundleDetails.notes || 'No summary available.'" readonly></textarea>
+            </div>
+            <div class="details-section">
+                <h4>Included Items</h4>
+                <div class="form-row">
+                    <button class="btn-secondary" type="button" (click)="bundleViewTab = 'notes'">Notes</button>
+                    <button class="btn-secondary" type="button" (click)="bundleViewTab = 'evidence'">Evidence</button>
+                </div>
+                <div *ngIf="bundleViewTab === 'notes'">
+                    <table class="data-table" *ngIf="getBundleItems(selectedBundleDetails, 'C-clip').length">
+                        <thead><tr><th>Order</th><th>Included investigation notes</th></tr></thead>
+                        <tbody>
+                            <tr *ngFor="let item of getBundleItems(selectedBundleDetails, 'C-clip')">
+                                <td>{{ item.order }}</td>
+                                <td>{{ item.name }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p *ngIf="!getBundleItems(selectedBundleDetails, 'C-clip').length">No investigation notes are included in this bundle.</p>
+                </div>
+                <div *ngIf="bundleViewTab === 'evidence'">
+                    <table class="data-table" *ngIf="getBundleItems(selectedBundleDetails, 'B-clip').length">
+                        <thead><tr><th>Order</th><th>Included evidence items</th></tr></thead>
+                        <tbody>
+                            <tr *ngFor="let item of getBundleItems(selectedBundleDetails, 'B-clip')">
+                                <td>{{ item.order }}</td>
+                                <td>{{ item.name }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p *ngIf="!getBundleItems(selectedBundleDetails, 'B-clip').length">No evidence items are included in this bundle.</p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-primary" *ngIf="canEditBundles && selectedBundleDetails.status === 'Draft'" (click)="closeBundleViewModal(); openBundleEdit(selectedBundleDetails)">Edit Bundle</button>
+            <button class="btn-secondary" (click)="closeBundleViewModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" [class.show]="showBundleEditModal" *ngIf="showBundleEditModal && selectedBundleDetails">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h3>Edit Prosecutor Bundle</h3>
+            <button type="button" class="close" (click)="closeBundleEditModal()" aria-label="Close edit bundle dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form [formGroup]="bundleEditForm">
+                <div class="form-group">
+                    <label for="bundle-edit-title">Bundle Title *</label>
+                    <input id="bundle-edit-title" type="text" formControlName="title" placeholder="Enter bundle title">
+                </div>
+                <div class="form-group">
+                    <label for="bundle-edit-summary">AI-Generated Summary</label>
+                    <textarea id="bundle-edit-summary" formControlName="aiSummaryText" rows="8" placeholder="Edit the prosecutor bundle summary"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="bundle-edit-notes">Notes</label>
+                    <textarea id="bundle-edit-notes" formControlName="notes" rows="3" placeholder="Additional bundle notes"></textarea>
+                </div>
+                <div class="details-section">
+                    <h4>Included Items</h4>
+                    <label><input type="checkbox" formControlName="includeNotes"> Notes (Approved)</label>
+                    <label><input type="checkbox" formControlName="includeEvidence"> Evidence (Active)</label>
+                    <small *ngIf="!bundleEditForm.value.includeNotes && !bundleEditForm.value.includeEvidence" class="invalid-feedback" style="display:block;">
+                        A bundle must include at least one item.
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label for="bundle-edit-reason">Reason *</label>
+                    <textarea id="bundle-edit-reason" formControlName="reason" rows="3" placeholder="Enter reason for bundle update"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" (click)="closeBundleEditModal()">Cancel</button>
+            <button class="btn-primary" (click)="saveBundleChanges()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Complete Inspection Modal -->
+<div class="modal" [class.show]="showInspectionModal" *ngIf="showInspectionModal && selectedDocket">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Complete 24-hour Inspection</h3>
+            <button type="button" class="close" (click)="closeInspectionModal()" aria-label="Close inspection dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p><strong>Docket:</strong> {{ selectedDocket.docketNumber }}</p>
+            <p><strong>Inspection due:</strong> {{ selectedDocket.inspectionDueAt ? (selectedDocket.inspectionDueAt | date:'yyyy-MM-dd HH:mm') : '-' }}</p>
+            <form [formGroup]="inspectionForm">
+                <div class="form-group">
+                    <label>Inspection Notes *</label>
+                    <textarea formControlName="notes" rows="4" placeholder="Record inspection outcome and completeness observations"></textarea>
+                    <div class="invalid-feedback" *ngIf="inspectionForm.get('notes')?.invalid && inspectionForm.get('notes')?.touched">
+                        Inspection notes must be at least 10 characters.
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" (click)="closeInspectionModal()">Cancel</button>
+            <button class="btn-primary" (click)="completeInspection()" [disabled]="inspectionForm.invalid">Mark Completed</button>
+        </div>
+    </div>
+</div>
+
+<!-- Status Transition Modal -->
+<div class="modal" [class.show]="showStatusModal" *ngIf="showStatusModal && selectedDocket">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Update Docket Status</h3>
+            <button type="button" class="close" (click)="closeStatusModal()" aria-label="Close docket status dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p><strong>Current status:</strong> {{ selectedDocket.status }}</p>
+            <form [formGroup]="statusForm">
+                <div class="form-group">
+                    <label>New Status *</label>
+                    <select formControlName="status" title="New status">
+                        <option value="">Select status</option>
+                        <option *ngFor="let status of transitionOptions" [value]="status" [disabled]="!isValidTransition(selectedDocket.status, status)">
+                            {{ status }}
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Reason *</label>
+                    <textarea formControlName="reason" rows="3" placeholder="Explain why this transition is valid"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" (click)="closeStatusModal()">Cancel</button>
+            <button class="btn-primary" (click)="transitionStatus()" [disabled]="statusForm.invalid">Save Status</button>
+        </div>
+    </div>
+</div>
+
+<!-- Prosecutor Preview Modal -->
+<div class="modal" [class.show]="showProsecutorPreviewModal" *ngIf="showProsecutorPreviewModal && selectedDocket">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h3>Share with Prosecutor Preview</h3>
+            <button type="button" class="close" (click)="closeProsecutorPreview()" aria-label="Close prosecutor preview dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="details-section">
+                <h4>Disclosed Fields</h4>
+                <p class="alert alert-error" *ngIf="prosecutorPreviewError" role="alert">{{ prosecutorPreviewError }}</p>
+                <pre>{{ (prosecutorPreview?.disclosedFields || prosecutorPreview) | json }}</pre>
+            </div>
+            <div class="details-section">
+                <h4>Deterministic Bundle Manifest</h4>
+                <table class="data-table" *ngIf="prosecutorPreview?.manifest?.length">
+                    <thead>
+                        <tr>
+                            <th>Clip</th>
+                            <th>Order</th>
+                            <th>Document</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of prosecutorPreview.manifest">
+                            <td>{{ item.section }}</td>
+                            <td>{{ item.order }}</td>
+                            <td>{{ item.name }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p *ngIf="!prosecutorPreview && !prosecutorPreviewError">Loading preview...</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" (click)="closeProsecutorPreview()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Docket Modal -->
+<div class="modal" [class.show]="showEditModal" *ngIf="showEditModal && selectedDocket">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h3>Update Docket</h3>
+            <button type="button" class="close" (click)="closeEditModal()" aria-label="Close update docket dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="details-section">
+                <h4>Docket Information</h4>
+                <div class="details-grid">
+                    <div><strong>Docket Number:</strong> {{ selectedDocket.docketNumber }}</div>
+                    <div><strong>OB Reference:</strong> {{ selectedDocket.obReferenceNumber }}</div>
+                    <div><strong>FIC Reference:</strong> {{ selectedDocket.ficReferenceNumber || '-' }}</div>
+                    <div><strong>Status:</strong> <span [class]="getStatusBadgeClass(selectedDocket.status)">{{ selectedDocket.status }}</span></div>
+                </div>
+            </div>
+            <form [formGroup]="editForm">
+                <div class="form-group">
+                    <label>Docket Summary *</label>
+                    <textarea formControlName="docketSummary" rows="4" placeholder="Update docket summary" title="Docket Summary"
+                              [class.is-invalid]="editForm.get('docketSummary')?.invalid && editForm.get('docketSummary')?.touched"></textarea>
+                    <div class="invalid-feedback" *ngIf="editForm.get('docketSummary')?.invalid && editForm.get('docketSummary')?.touched">
+                        Docket summary is required.
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Modus Operandi</label>
+                    <textarea formControlName="modusOperandi" rows="3" placeholder="Update modus operandi" title="Modus Operandi"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Sensitivity Level *</label>
+                    <select formControlName="sensitivityLevel" title="Select docket sensitivity level">
+                        <option *ngFor="let level of sensitivityLevels" [value]="level.value">{{ level.label }}</option>
+                    </select>
+                    <small>Use Restricted or Highly Sensitive for vulnerable persons, including minors.</small>
+                </div>
+                <div class="form-group">
+                    <label>Reason for Update *</label>
+                    <textarea formControlName="reasonForUpdate" rows="3" placeholder="Enter at least 20 characters explaining why this docket is being updated" title="Reason for Update"
+                              [class.is-invalid]="editForm.get('reasonForUpdate')?.invalid && editForm.get('reasonForUpdate')?.touched"></textarea>
+                    <small>Required for audit history. Minimum 20 characters.</small>
+                    <div class="invalid-feedback" *ngIf="editForm.get('reasonForUpdate')?.invalid && editForm.get('reasonForUpdate')?.touched">
+                        Reason for update must be at least 20 characters.
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" (click)="closeEditModal()">Cancel</button>
+            <button class="btn-primary" (click)="updateDocket()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Create Docket Modal -->
+<div class="modal" [class.show]="showCreateModal" *ngIf="showCreateModal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h3>Create New Docket</h3>
+            <button type="button" class="close" (click)="closeCreateModal()" aria-label="Close create docket dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form [formGroup]="createForm" class="create-docket-form">
+                <div class="section-heading core-heading"><span>1</span><div><h4>Incident Details</h4><p>Core references and classifications</p></div></div>
+                <div class="generated-reference-note"><i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i><span>OB and FIC references are generated automatically when the docket is registered.</span></div>
+                <div class="form-row generated-reference-fields">
+                    <div class="form-group">
+                        <label>OB Reference Number</label>
+                        <input type="text" formControlName="obReferenceNumber" maxlength="30" placeholder="e.g. OB1234/08/2026" title="OB Reference Number"
+                               [class.is-invalid]="createForm.get('obReferenceNumber')?.invalid && createForm.get('obReferenceNumber')?.touched">
+                        <div class="invalid-feedback" *ngIf="createForm.get('obReferenceNumber')?.invalid && createForm.get('obReferenceNumber')?.touched">
+                            OB reference is required, must be 3–30 characters, and may contain letters, numbers, / or - only.
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>FIC Reference Number</label>
+                        <input type="text" formControlName="ficReferenceNumber" maxlength="30" placeholder="Optional FIC reference" title="FIC Reference Number"
+                               [class.is-invalid]="createForm.get('ficReferenceNumber')?.invalid && createForm.get('ficReferenceNumber')?.touched">
+                        <small>Optional. Leave blank when the case has no FIC reference.</small>
+                        <div class="invalid-feedback" *ngIf="createForm.get('ficReferenceNumber')?.invalid && createForm.get('ficReferenceNumber')?.touched">
+                            FIC reference must be 3–30 characters and may contain letters, numbers, / or - only.
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Case Type *</label>
+                        <select formControlName="caseType" title="Select case type" (change)="onClassificationChange()">
+                            <option *ngFor="let caseType of caseTypes" [value]="caseType">{{ caseType }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group" *ngIf="createForm.get('caseType')?.value === 'Other'">
+                        <label>Specify Case Type *</label>
+                        <input type="text" maxlength="100" formControlName="otherCaseType" placeholder="Enter the case type">
+                        <div class="invalid-feedback visible" *ngIf="createForm.get('otherCaseType')?.invalid && createForm.get('otherCaseType')?.touched">Specify the case type using 2–100 characters.</div>
+                    </div>
+                </div>
+                <div class="form-group sensitivity-group">
+                    <label>Sensitivity Level *</label>
+                    <select formControlName="sensitivityLevel" title="Select docket sensitivity level">
+                        <option *ngFor="let level of sensitivityLevels" [value]="level.value">{{ level.label }}</option>
+                    </select>
+                    <small>Cases involving minors or sexual offences are suggested as Highly Sensitive.</small>
+                </div>
+                <div class="form-group docket-summary-group">
+                    <label>Docket Summary *</label>
+                    <textarea formControlName="docketSummary" maxlength="1000" rows="3" placeholder="Enter at least 10 characters" title="Docket Summary"
+                              [class.is-invalid]="createForm.get('docketSummary')?.invalid && createForm.get('docketSummary')?.touched"></textarea>
+                    <div class="invalid-feedback" *ngIf="createForm.get('docketSummary')?.invalid && createForm.get('docketSummary')?.touched">Docket summary must be 10–1000 characters.</div>
+                </div>
+                <div class="form-group modus-group">
+                    <label>Modus Operandi</label>
+                    <textarea formControlName="modusOperandi" rows="2" placeholder="Enter modus operandi" title="Modus Operandi"></textarea>
+                </div>
+                
+                <div formGroupName="incident" class="incident-fields">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Occurrence Date *</label>
+                            <input type="datetime-local" formControlName="occurrenceDate" placeholder="Select occurrence date" title="Occurrence Date">
+                        </div>
+                        <div class="form-group">
+                            <label>Crime / Incident Type *</label>
+                            <select formControlName="incidentTypeID" title="Select incident type" (change)="onClassificationChange()">
+                                <option [ngValue]="null">Select Type</option>
+                                <option *ngFor="let type of incidentTypes" [ngValue]="type.incidentTypeID">
+                                    {{ type.typeName }}
+                                </option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                            <div class="invalid-feedback" *ngIf="createForm.get('incident.incidentTypeID')?.invalid && createForm.get('incident.incidentTypeID')?.touched">Select the crime or incident type.</div>
+                        </div>
+                    </div>
+                    <div class="form-group" *ngIf="createForm.get('incident.incidentTypeID')?.value === 'OTHER'">
+                        <label>Specify Crime / Incident Type *</label>
+                        <input type="text" maxlength="100" formControlName="otherIncidentType" placeholder="Enter the crime or incident type">
+                        <div class="invalid-feedback visible" *ngIf="createForm.get('incident.otherIncidentType')?.invalid && createForm.get('incident.otherIncidentType')?.touched">Specify the crime or incident type using 2–100 characters.</div>
+                    </div>
+                </div>
+                <div class="section-heading location-heading"><span>2</span><div><h4>Location &amp; Geographic Data</h4><p>Select the incident point to capture its area and coordinates</p></div></div>
+                <div formGroupName="incident" class="location-fields">
+                    <div class="form-group">
+                        <label>Location Type *</label>
+                        <select formControlName="locationType" title="Location Type" (change)="onClassificationChange()">
+                            <option value="">Select location type</option>
+                            <option *ngFor="let locationType of incidentLocationTypes" [value]="locationType">
+                                {{ locationType }}
+                            </option>
+                        </select>
+                        <div class="invalid-feedback" *ngIf="createForm.get('incident.locationType')?.invalid && createForm.get('incident.locationType')?.touched">Select one of the approved location types.</div>
+                    </div>
+                    <div class="form-group" *ngIf="createForm.get('incident.locationType')?.value === 'Other'">
+                        <label>Specify Location Type *</label>
+                        <input type="text" maxlength="100" formControlName="otherLocationType" placeholder="Enter the location type">
+                        <div class="invalid-feedback visible" *ngIf="createForm.get('incident.otherLocationType')?.invalid && createForm.get('incident.otherLocationType')?.touched">Specify the location type using 2–100 characters.</div>
+                    </div>
+                    <div class="address-search" role="search">
+                        <label for="incident-address-search">Search for an address or place</label>
+                        <div class="address-search-control">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                            <input id="incident-address-search" type="search" autocomplete="street-address" maxlength="200"
+                                   [value]="addressSearchQuery" (input)="addressSearchQuery = $any($event.target).value"
+                                   (keydown.enter)="$event.preventDefault(); searchAddress()"
+                                   placeholder="e.g. 123 Church Street, Pretoria" aria-describedby="address-search-help">
+                            <button type="button" (click)="searchAddress()" [disabled]="isSearchingAddress">
+                                <i class="fas fa-spinner fa-spin" *ngIf="isSearchingAddress"></i>
+                                {{ isSearchingAddress ? 'Searching' : 'Search' }}
+                            </button>
+                        </div>
+                        <small id="address-search-help">Search is limited to South African addresses and places.</small>
+                        <div class="address-results" *ngIf="addressSearchResults.length" role="listbox" aria-label="Address search results">
+                            <button type="button" *ngFor="let result of addressSearchResults" (click)="chooseAddress(result)" role="option">
+                                <i class="fas fa-map-marker-alt"></i><span>{{ result.displayName }}</span>
+                            </button>
+                        </div>
+                        <div class="address-search-error" *ngIf="addressSearchError" role="alert">{{ addressSearchError }}</div>
+                    </div>
+                    <div class="map-toolbar"><p><i class="fas fa-map-marker-alt"></i> Or click the map at the incident location.</p><button type="button" class="btn-map-location" (click)="useCurrentLocation()" [disabled]="isResolvingLocation"><i class="fas fa-crosshairs"></i> Use my location</button></div>
+                    <div class="location-map-shell">
+                        <div #locationMap class="location-map" role="application" aria-label="Interactive incident location map"></div>
+                        <div class="map-loading-overlay" *ngIf="isMapLoading"><i class="fas fa-spinner fa-spin" aria-hidden="true"></i><span>Loading map…</span></div>
+                    </div>
+                    <div class="alert-error map-load-error" *ngIf="mapLoadError" role="alert"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> {{ mapLoadError }}</div>
+                    <div class="map-status" *ngIf="isResolvingLocation"><i class="fas fa-spinner fa-spin"></i> Identifying the selected area…</div>
+                    <div class="alert-error" *ngIf="locationLookupError">{{ locationLookupError }}</div>
+                    <div class="selected-location" *ngIf="createForm.get('incident.latitude')?.value"><i class="fas fa-check-circle"></i><div><small>Selected area</small><strong>{{ createForm.get('incident.areaName')?.value || 'Identifying area…' }}</strong></div></div>
+                    <input type="hidden" formControlName="latitude"><input type="hidden" formControlName="longitude"><input type="hidden" formControlName="areaName">
+                    <div class="invalid-feedback visible" *ngIf="createForm.get('incident.areaName')?.invalid && createForm.get('incident.areaName')?.touched">Select an incident location on the map.</div>
+                </div>
+                <div class="section-heading narrative-heading"><span>3</span><div><h4>Narrative</h4><p>Describe how the incident unfolded</p></div></div>
+                <div class="form-group narrative-description" formGroupName="incident">
+                    <label>Description *</label>
+                    <textarea formControlName="description" maxlength="1000" rows="5" placeholder="Provide the detailed narrative of how the incident unfolded" title="Description"
+                              [class.is-invalid]="createForm.get('incident.description')?.invalid && createForm.get('incident.description')?.touched"></textarea>
+                    <div class="invalid-feedback" *ngIf="createForm.get('incident.description')?.invalid && createForm.get('incident.description')?.touched">Incident description must be 10–1000 characters.</div>
+                </div>
+                
+                <div class="section-heading complainant-heading"><span>4</span><div><h4>Complainant Details</h4><p>Person reporting or affected by the incident</p></div></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" maxlength="100" formControlName="complainantFullName" placeholder="Enter complainant's full name" title="Complainant Full Name"
+                               [class.is-invalid]="createForm.get('complainantFullName')?.invalid && createForm.get('complainantFullName')?.touched">
+                        <div class="invalid-feedback" *ngIf="createForm.get('complainantFullName')?.invalid && createForm.get('complainantFullName')?.touched">Name must be 2–100 characters and contain letters, spaces, apostrophes or hyphens only.</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Number</label>
+                        <input type="tel" maxlength="12" inputmode="tel" formControlName="complainantContactNumber" placeholder="0712345678 or +27712345678" title="Complainant Contact Number"
+                               [class.is-invalid]="createForm.get('complainantContactNumber')?.invalid && createForm.get('complainantContactNumber')?.touched">
+                        <div class="invalid-feedback" *ngIf="createForm.get('complainantContactNumber')?.invalid && createForm.get('complainantContactNumber')?.touched">
+                            Enter 10 digits starting with 0, or +27 followed by 9 digits. Spaces and letters are not allowed.
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" (click)="closeCreateModal()">Cancel</button>
+            <button class="btn-primary" (click)="createDocket()" [disabled]="createForm.invalid">
+                Create Docket
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Allocate Docket Modal -->
+<div class="modal" [class.show]="showAllocateModal" *ngIf="showAllocateModal && selectedDocket">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>{{ isReassigning ? 'Reassign Docket' : 'Allocate Docket' }}</h3>
+            <button type="button" class="close" (click)="closeAllocateModal()" aria-label="Close allocate docket dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p><strong>Docket:</strong> {{ getDocketDisplayName(selectedDocket) }}</p>
+            <p><strong>OB Reference:</strong> {{ selectedDocket.obReferenceNumber }}</p>
+            <p class="policy-note">Maximum active dockets per Investigating Officer: {{ runtimePolicies.maxActiveDocketsPerOfficer }}</p>
+            <form [formGroup]="allocateForm">
+                <div class="form-group">
+                    <label>Investigating Officer *</label>
+                    <select formControlName="investigatingOfficerUserID" title="Select investigating officer">
+                        <option value="">Select Officer</option>
+                        <option *ngFor="let officer of availableOfficers" [value]="officer.id" [disabled]="isOfficerAtCapacity(officer)">
+                            {{ officer.fullName }} ({{ officer.personnelNumber }}) - {{ getOfficerWorkloadLabel(officer) }}
+                        </option>
+                    </select>
+                    <small *ngIf="getSelectedOfficer()">{{ getOfficerWorkloadLabel(getSelectedOfficer()) }}</small>
+                </div>
+                <div class="form-group" *ngIf="isReassigning">
+                    <label>Reason for Reassignment *</label>
+                    <textarea formControlName="reason" maxlength="500" rows="3" placeholder="Enter at least 10 characters"></textarea>
+                    <div class="invalid-feedback visible" *ngIf="allocateForm.get('reason')?.invalid && allocateForm.get('reason')?.touched">Enter a reason of 10 to 500 characters.</div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" (click)="closeAllocateModal()">Cancel</button>
+            <button class="btn-primary" (click)="allocateDocket()" [disabled]="allocateForm.invalid">
+                {{ isReassigning ? 'Reassign' : 'Allocate' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Docket Details Modal -->
+<div class="modal" [class.show]="showDetailsModal" *ngIf="showDetailsModal && selectedDocket">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h3>Docket Details</h3>
+            <button type="button" class="close" (click)="closeDetailsModal()" aria-label="Close docket details dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="details-section">
+                <h4>Docket Information</h4>
+                <div class="details-grid">
+                    <div><strong>Docket Number:</strong> {{ selectedDocket.docketNumber }}</div>
+                    <div><strong>Case File Name:</strong> {{ getDocketSubjectLabel(selectedDocket) }}</div>
+                    <div><strong>OB Reference:</strong> {{ selectedDocket.obReferenceNumber }}</div>
+                    <div><strong>FIC Reference:</strong> {{ selectedDocket.ficReferenceNumber || '-' }}</div>
+                    <div><strong>Status:</strong> <span [class]="getStatusBadgeClass(selectedDocket.status)">{{ selectedDocket.status }}</span></div>
+                    <div><strong>Created:</strong> {{ selectedDocket.dateCreated | date:'yyyy-MM-dd HH:mm' }}</div>
+                    <div><strong>Created By:</strong> {{ selectedDocket.createdByName }}</div>
+                    <div><strong>Case Type:</strong> {{ selectedDocket.caseType || '-' }}</div>
+                    <div><strong>Sensitivity:</strong> {{ (selectedDocket.sensitivityLevel || 'NORMAL').replace('_', ' ') }}</div>
+                    <div><strong>Complainant:</strong> {{ selectedDocket.complainantFullName || '-' }}</div>
+                    <div><strong>Complainant Contact:</strong> {{ selectedDocket.complainantContactNumber || '-' }}</div>
+                    <div><strong>Station:</strong> {{ selectedDocket.stationName || '-' }}</div>
+                    <div><strong>Jurisdiction:</strong> {{ selectedDocket.jurisdiction || '-' }}</div>
+                    <div><strong>Suspect:</strong> {{ selectedDocket.suspectName || '-' }}</div>
+                    <div><strong>Assigned Officer:</strong> {{ selectedDocket.assignedOfficerName || '-' }}</div>
+                    <div>
+                            <strong>Allocated Date:</strong> 
+                            {{ selectedDocket.dateAllocated ? (selectedDocket.dateAllocated | date:'yyyy-MM-dd HH:mm') : '-' }}
+                    </div>
+                    <div><strong>Accepted:</strong> {{ selectedDocket.assignmentAcceptedAt ? (selectedDocket.assignmentAcceptedAt | date:'yyyy-MM-dd HH:mm') : '-' }}</div>
+                    <div><strong>Inspection Due:</strong> {{ selectedDocket.inspectionDueAt ? (selectedDocket.inspectionDueAt | date:'yyyy-MM-dd HH:mm') : '-' }}</div>
+                    <div><strong>Inspection Completed:</strong> {{ selectedDocket.inspectionCompletedAt ? (selectedDocket.inspectionCompletedAt | date:'yyyy-MM-dd HH:mm') : '-' }}</div>
+                    <div><strong>Priority Rule:</strong> {{ isHighPriorityByAge(selectedDocket) ? ('Escalate - ' + getDocketAgeDays(selectedDocket) + ' days open') : 'Within threshold' }}</div>
+                    <div><strong>Archive Rule:</strong> {{ getArchiveEligibilityText(selectedDocket) }}</div>
+                    <div><strong>Privacy Flag:</strong> {{ selectedDocket.privacyFlag ? 'Active' : 'None' }}</div>
+                </div>
+                <div class="details-summary">
+                    <strong>Summary:</strong>
+                    <p>{{ selectedDocket.docketSummary || 'No docket summary captured.' }}</p>
+                </div>
+            </div>
+            
+            <div class="details-section" *ngIf="selectedDocket.incident">
+                <h4>Incident Details</h4>
+                <div class="details-grid">
+                    <div><strong>Occurrence Date:</strong> {{ selectedDocket.incident.occurrenceDate | date:'yyyy-MM-dd HH:mm' }}</div>
+                    <div><strong>Incident Type:</strong> {{ selectedDocket.incident.incidentType || '-' }}</div>
+                    <div><strong>Location Type:</strong> {{ selectedDocket.incident.locationType || '-' }}</div>
+                    <div><strong>Description:</strong> {{ selectedDocket.incident.description }}</div>
+                    <div *ngIf="selectedDocket.incident.areaName"><strong>Area:</strong> {{ selectedDocket.incident.areaName }}</div>
+                    <div *ngIf="selectedDocket.incident.latitude"><strong>Coordinates:</strong> {{ selectedDocket.incident.latitude }}, {{ selectedDocket.incident.longitude }}</div>
+                </div>
+            </div>
+
+            <div class="details-section" *ngIf="selectedDocket.investigationID">
+                <h4>Investigation Notes</h4>
+                <p class="alert alert-error" *ngIf="docketNotesError" role="alert">{{ docketNotesError }}</p>
+                <div class="docket-note-list" *ngIf="docketNotes.length">
+                    <article class="docket-note-card" *ngFor="let note of docketNotes">
+                        <div class="docket-note-meta">
+                            <strong>{{ note.authorName || 'Unknown author' }}</strong>
+                            <span>{{ note.entryDate | date:'yyyy-MM-dd HH:mm' }}</span>
+                        </div>
+                        <p>{{ note.description }}</p>
+                    </article>
+                </div>
+                <p *ngIf="!docketNotes.length && !docketNotesError">No investigation notes have been captured for this docket yet.</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-primary" (click)="openEvidenceForDocket(selectedDocket)" *ngIf="canAccessEvidence">
+                <i class="fas fa-box-archive" aria-hidden="true"></i> View Evidence
+            </button>
+            <button class="btn-secondary" (click)="closeDetailsModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- UC 3.4 — Archive Docket Modal -->
+<div class="modal" [class.show]="showArchiveModal" *ngIf="showArchiveModal && selectedDocket">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-archive"></i> Archive Docket</h3>
+            <button type="button" class="close" (click)="closeArchiveModal()" aria-label="Close archive docket dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p><strong>Docket:</strong> {{ selectedDocket.docketNumber }}</p>
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                This docket will be moved to read-only archived storage. This action cannot be undone.
+                All linked investigation notes must be in Approved or Archived status.
+            </div>
+            <p class="policy-note">
+                Archive policy: this docket has been closed for {{ getArchiveAgeDays(selectedDocket) }} days.
+                The configured threshold is {{ runtimePolicies.archiveEligibleDays }} days.
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" (click)="closeArchiveModal()">Cancel</button>
+            <button class="btn-danger" (click)="confirmArchiveDocket()" [disabled]="isLoading">
+                <i class="fas fa-archive"></i> Confirm Archive
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- UC 8.1 — Record Court Outcome Modal -->
+<div class="modal" [class.show]="showCourtOutcomeModal" *ngIf="showCourtOutcomeModal && selectedDocket">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-gavel"></i> Record Court Outcome</h3>
+            <button type="button" class="close" (click)="closeCourtOutcomeModal()" aria-label="Close court outcome dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p><strong>Docket:</strong> {{ selectedDocket.docketNumber }}</p>
+            <form [formGroup]="courtOutcomeForm">
+                <div class="form-group">
+                    <label for="courtOutcome">Court Outcome *</label>
+                    <select id="courtOutcome" formControlName="outcome" class="form-control">
+                        <option value="">-- Select Outcome --</option>
+                        <option *ngFor="let opt of courtOutcomeOptions" [value]="opt">{{ opt }}</option>
+                    </select>
+                    <div class="invalid-feedback" *ngIf="courtOutcomeForm.get('outcome')?.invalid && courtOutcomeForm.get('outcome')?.touched">
+                        Court outcome is required
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="courtDate">Court Date *</label>
+                    <input type="date" id="courtDate" formControlName="courtDate" class="form-control"
+                           [min]="$any(selectedDocket.dateCreated) | date:'yyyy-MM-dd'" [max]="today">
+                    <small>Use the actual court appearance date. It cannot precede docket creation or be in the future.</small>
+                </div>
+                <div class="form-group">
+                    <label for="presidingOfficer">Presiding Officer *</label>
+                    <input type="text" id="presidingOfficer" formControlName="presidingOfficer"
+                           class="form-control" placeholder="Full name and title of presiding officer">
+                </div>
+                <div class="form-group" *ngIf="courtOutcomeForm.get('outcome')?.value === 'Guilty'">
+                    <label for="sentence">Sentence Details *</label>
+                    <textarea id="sentence" formControlName="sentence" class="form-control"
+                              rows="3" placeholder="Enter sentence details..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="coNotes">Additional Notes</label>
+                    <textarea id="coNotes" formControlName="notes" class="form-control"
+                              rows="2" placeholder="Any additional notes (optional)"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" (click)="closeCourtOutcomeModal()">Cancel</button>
+            <button class="btn-primary" (click)="submitCourtOutcome()" [disabled]="isLoading || courtOutcomeForm.invalid">
+                <i class="fas fa-save"></i> Save Court Outcome
+            </button>
+        </div>
+    </div>
+</div>

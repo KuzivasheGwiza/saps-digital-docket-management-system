@@ -1,0 +1,142 @@
+<!-- src/app/components/profile/profile.html — UC 2.5 Update Profile -->
+<div class="profile-container">
+    <div class="profile-card" *ngIf="!isLoading && user">
+        <div class="profile-header">
+            <div class="profile-header-main">
+                <div class="photo-section">
+                    <div class="photo-picker">
+                        <div class="profile-avatar">
+                            <img *ngIf="profilePhotoUrl" [src]="profilePhotoUrl" alt="Profile photo">
+                            <i *ngIf="!profilePhotoUrl" class="fas fa-user-circle" aria-hidden="true"></i>
+                        </div>
+                        <button type="button" class="photo-add-button" (click)="togglePhotoMenu()" [disabled]="isUploadingPhoto || isStartingCamera" [attr.aria-expanded]="showPhotoMenu" aria-haspopup="menu" aria-controls="photo-action-menu" aria-label="Change profile photo">
+                            <i class="fas" [class.fa-plus]="!isUploadingPhoto && !isStartingCamera" [class.fa-spinner]="isUploadingPhoto || isStartingCamera" [class.fa-spin]="isUploadingPhoto || isStartingCamera" aria-hidden="true"></i>
+                        </button>
+                        <div id="photo-action-menu" class="photo-action-menu" *ngIf="showPhotoMenu" role="menu">
+                            <label class="photo-menu-item" for="profilePhotoInput" role="menuitem"><i class="fas fa-image" aria-hidden="true"></i><span><strong>Choose photo</strong><small>Upload from this device</small></span></label>
+                            <button type="button" class="photo-menu-item" role="menuitem" (click)="openCamera()"><i class="fas fa-camera" aria-hidden="true"></i><span><strong>Take photo</strong><small>Use the device camera</small></span></button>
+                        </div>
+                    </div>
+                    <input id="profilePhotoInput" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" (change)="onProfilePhotoSelected($event)" [disabled]="isUploadingPhoto">
+                    <small class="photo-help">Select the + button to add or change your profile photo.</small>
+                    <div class="invalid-feedback photo-error" *ngIf="photoValidationMessage">{{ photoValidationMessage }}</div>
+                </div>
+                <div class="profile-summary">
+                    <span class="profile-eyebrow">User profile</span>
+                    <h2>{{ user.firstName }} {{ user.lastName }}</h2>
+                    <div class="profile-badges">
+                        <span class="role-badge"><i class="fas fa-user-shield" aria-hidden="true"></i>{{ user.roleName }}</span>
+                        <span class="station-badge"><i class="fas fa-building-shield" aria-hidden="true"></i>{{ user.stationName }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-body">
+            <!-- Identity — Read Only -->
+            <div class="info-section">
+                <h3><i class="fas fa-id-card"></i> Identity Information <span class="readonly-label">Read Only</span></h3>
+                <div class="info-grid">
+                    <div class="info-item"><label>First Name</label><span>{{ user.firstName }}</span></div>
+                    <div class="info-item"><label>Last Name</label><span>{{ user.lastName }}</span></div>
+                    <div class="info-item"><label>Personnel Number</label><span>{{ user.personnelNumber }}</span></div>
+                    <div class="info-item"><label>Rank</label><span>{{ user.rank }}</span></div>
+                    <div class="info-item"><label>Role</label><span>{{ user.roleName }}</span></div>
+                    <div class="info-item"><label>Station</label><span>{{ user.stationName }}</span></div>
+                </div>
+            </div>
+
+            <!-- Contact — Editable (UC 2.5) -->
+            <div class="info-section editable-section">
+                <div class="section-header-row">
+                    <h3><i class="fas fa-phone"></i> Contact Information</h3>
+                    <button class="btn-edit" (click)="toggleEdit()" *ngIf="!isEditing">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                </div>
+
+                <!-- Read mode -->
+                <div class="info-grid" *ngIf="!isEditing">
+                    <div class="info-item"><label>Email Address</label><span>{{ user.emailAddress }}</span></div>
+                    <div class="info-item"><label>Notifications</label><span>{{ user.notificationPreferences || 'InApp' }}</span></div>
+                    <div class="info-item"><label>Phone Number</label><span>{{ user.phoneNumber || '—' }}</span></div>
+                </div>
+
+                <!-- Edit mode (UC 2.5) -->
+                <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" *ngIf="isEditing">
+                    <div class="info-grid">
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="text" class="form-control readonly" [value]="user.emailAddress" readonly>
+                            <small class="field-help">Contact System Administrator to change email</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="tel" maxlength="12" inputmode="tel" formControlName="phoneNumber" class="form-control"
+                                   placeholder="0712345678 or +27712345678"
+                                   [class.is-invalid]="profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched">
+                            <div class="invalid-feedback" *ngIf="profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched">
+                                Enter 10 digits starting with 0, or +27 followed by 9 digits. Spaces and letters are not allowed.
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Notifications</label>
+                            <select formControlName="notificationPreferences" class="form-control" title="Notification preference">
+                                <option value="Email">Email</option>
+                                <option value="EmailAndInApp">Email and in-app</option>
+                                <option value="InApp">In-app only</option>
+                                <option value="SMS">SMS</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="edit-actions">
+                        <button type="button" class="btn-secondary" (click)="toggleEdit()">Cancel</button>
+                        <button type="submit" class="btn-primary" [disabled]="isSaving">
+                            <i class="fas fa-spinner fa-spin" *ngIf="isSaving"></i>
+                            <span *ngIf="!isSaving"><i class="fas fa-save"></i> Save Changes</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Account Status -->
+            <div class="info-section">
+                <h3><i class="fas fa-chart-line"></i> Account Status</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Status</label>
+                        <span [class]="getStatusBadgeClass()" class="status-badge">{{ getStatusText() }}</span>
+                    </div>
+                    <div class="info-item"><label>Date Created</label><span>{{ user.dateCreated | date:'yyyy-MM-dd HH:mm' }}</span></div>
+                    <div class="info-item"><label>Last Login</label><span>{{ user.lastLoginDate ? (user.lastLoginDate | date:'yyyy-MM-dd HH:mm') : 'Never' }}</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-footer">
+            <button class="btn-primary" routerLink="/change-password">
+                <i class="fas fa-key"></i> Change Password
+            </button>
+        </div>
+    </div>
+
+    <div class="camera-backdrop" *ngIf="showCamera" (click)="closeCamera()">
+        <section class="camera-dialog" role="dialog" aria-modal="true" aria-labelledby="camera-title" (click)="$event.stopPropagation()">
+            <header>
+                <div><h2 id="camera-title">Take profile photo</h2><p>Position your face inside the frame, then capture the photo.</p></div>
+                <button type="button" class="camera-close" (click)="closeCamera()" aria-label="Close camera"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+            </header>
+            <div class="camera-preview">
+                <video #cameraVideo autoplay playsinline muted aria-label="Live camera preview"></video>
+            </div>
+            <footer>
+                <button type="button" class="btn-secondary" (click)="closeCamera()">Cancel</button>
+                <button type="button" class="camera-capture" (click)="capturePhoto()"><i class="fas fa-camera" aria-hidden="true"></i> Capture photo</button>
+            </footer>
+        </section>
+    </div>
+
+    <div class="loading-spinner" *ngIf="isLoading">
+        <i class="fas fa-spinner fa-spin"></i> Loading profile...
+    </div>
+</div>

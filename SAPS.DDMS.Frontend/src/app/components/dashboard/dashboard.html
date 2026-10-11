@@ -1,0 +1,179 @@
+<!-- src/app/components/dashboard/dashboard.html -->
+<div class="dashboard">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+        <div class="welcome-text">
+            <h1>Welcome back, {{ currentUser?.firstName }} {{ currentUser?.lastName }}</h1>
+            <p>{{ currentUser?.roleName }} at {{ currentUser?.stationName }}</p>
+        </div>
+        <div class="role-badge" [class]="getRoleBadgeClass(currentUser?.roleName || '')">
+            <i class="fas fa-user-shield"></i> {{ currentUser?.roleName }}
+        </div>
+    </div>
+    
+    <section class="admin-home" *ngIf="isSystemAdministrator" aria-labelledby="admin-home-title">
+        <div class="section-header">
+            <div>
+                <h2 id="admin-home-title">System Administration</h2>
+                <p>Manage system access, configuration, support content and governance records.</p>
+            </div>
+        </div>
+        <div class="admin-action-grid">
+            <a routerLink="/users"><i class="fas fa-user-gear"></i><span>User Management</span></a>
+            <a routerLink="/roles"><i class="fas fa-user-shield"></i><span>Roles and Permissions</span></a>
+            <a routerLink="/faq-management"><i class="fas fa-circle-question"></i><span>FAQ Management</span></a>
+            <a routerLink="/system-config"><i class="fas fa-sliders"></i><span>System Configuration</span></a>
+            <a routerLink="/audit-log"><i class="fas fa-clipboard-list"></i><span>Audit Trail</span></a>
+            <a routerLink="/backup"><i class="fas fa-database"></i><span>Backup and Restore</span></a>
+        </div>
+    </section>
+
+    <ng-container *ngIf="!isSystemAdministrator">
+    <!-- Stats Cards -->
+    <div class="stats-grid" *ngIf="stats">
+        <div class="stat-card stagger-1">
+            <div class="stat-icon total">
+                <i class="fas fa-folder-open"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="stat-total">{{ stats.totalDockets }}</h3>
+                <p>Total Dockets</p>
+            </div>
+        </div>
+        <div class="stat-card stagger-2">
+            <div class="stat-icon open">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="stat-open">{{ stats.openDockets }}</h3>
+                <p>Open Dockets</p>
+            </div>
+        </div>
+        <div class="stat-card stagger-3">
+            <div class="stat-icon allocated">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="stat-allocated">{{ stats.allocatedDockets }}</h3>
+                <p>Allocated</p>
+            </div>
+        </div>
+        <div class="stat-card stagger-4">
+            <div class="stat-icon investigation">
+                <i class="fas fa-search"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="stat-investigation">{{ stats.underInvestigation }}</h3>
+                <p>Under Investigation</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="sla-panel">
+        <div class="section-header">
+            <h2>24-hour Inspection Compliance</h2>
+            <span class="sla-score">{{ getInspectionCompliance().percent }}%</span>
+        </div>
+        <div class="sla-grid">
+            <div><strong>{{ getInspectionCompliance().completed }}</strong><span>Completed</span></div>
+            <div><strong>{{ getInspectionCompliance().pending }}</strong><span>Pending</span></div>
+            <div><strong>{{ getInspectionCompliance().overdue }}</strong><span>Overdue</span></div>
+        </div>
+        <div class="sla-table-wrap" *ngIf="inspectionDockets.length" tabindex="0" aria-label="24-hour inspection compliance table">
+        <table class="sla-table">
+            <thead>
+                <tr>
+                    <th>Docket</th>
+                    <th>Accepted</th>
+                    <th>Due</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let docket of inspectionDockets">
+                    <td><a [routerLink]="['/dockets', docket.docketID]">{{ docket.docketNumber }}</a></td>
+                    <td>{{ docket.assignmentAcceptedAt ? (docket.assignmentAcceptedAt | date:'yyyy-MM-dd HH:mm') : '-' }}</td>
+                    <td>{{ docket.inspectionDueAt ? (docket.inspectionDueAt | date:'yyyy-MM-dd HH:mm') : '-' }}</td>
+                    <td>{{ getInspectionStatus(docket) }}</td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="charts-row" *ngIf="stats">
+        <div class="chart-card">
+            <h2><i class="fas fa-chart-column"></i> Dockets by Status</h2>
+            <div class="chart-frame">
+                <canvas #statusChart></canvas>
+            </div>
+        </div>
+        <div class="chart-card">
+            <h2><i class="fas fa-chart-column"></i> Monthly Docket Trend</h2>
+            <div class="chart-frame">
+                <canvas #trendChart></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Dockets -->
+    <div class="recent-dockets">
+        <div class="section-header">
+            <h2>Recent Dockets</h2>
+            <button class="btn-outline" routerLink="/dockets">
+                View All <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+        
+        <div class="dockets-table" *ngIf="!isLoading">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Docket Number</th>
+                        <th>OB Reference</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let docket of recentDockets">
+                        <td><strong>{{ docket.docketNumber }}</strong></td>
+                        <td>{{ docket.obReferenceNumber }}</td>
+                        <td><span [class]="getStatusBadgeClass(docket.status)">{{ docket.status }}</span></td>
+                        <td>{{ docket.dateCreated | date:'short' }}</td>
+                        <td>
+                    <button type="button" class="btn-icon" [routerLink]="['/dockets', docket.docketID]" title="View docket" aria-label="View docket">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr *ngIf="recentDockets.length === 0">
+                        <td colspan="5" class="no-data">No dockets found</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="loading-spinner" *ngIf="isLoading">
+            <i class="fas fa-spinner fa-spin"></i> Loading...
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="quick-actions" *ngIf="currentUser?.roleName === 'CSC Officer'">
+        <h2>Quick Actions</h2>
+        <div class="action-buttons">
+            <button class="action-btn primary" routerLink="/dockets/create">
+                <i class="fas fa-plus-circle"></i>
+                <span>Create New Docket</span>
+            </button>
+            <button class="action-btn secondary" routerLink="/persons/create">
+                <i class="fas fa-user-plus"></i>
+                <span>Register Person</span>
+            </button>
+        </div>
+    </div>
+    </ng-container>
+</div>

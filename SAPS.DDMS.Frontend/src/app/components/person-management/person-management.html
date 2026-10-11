@@ -1,0 +1,360 @@
+<!-- src/app/components/person-management/person-management.html -->
+<div class="person-management">
+    <div class="page-header">
+        <h2>Person Management</h2>
+        <button class="btn-primary" (click)="openCreateModal()" *ngIf="canCreateOrEditPerson">
+            <i class="fas fa-plus"></i> Register Person
+        </button>
+    </div>
+    
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <input type="text" 
+               placeholder="Search by name, ID number, or phone number..."
+               [(ngModel)]="searchTerm"
+               (input)="onSearchInput()">
+        <i class="fas fa-search"></i>
+    </div>
+    
+    <!-- Error Container -->
+    <div class="error-container" *ngIf="error && !isLoading">
+        <div class="error-message">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>{{ error }}</p>
+            <button class="btn-secondary" (click)="retry()">Retry</button>
+        </div>
+    </div>
+
+    <!-- Recently Registered Person -->
+    <section class="registered-person-section" *ngIf="recentRegisteredPerson">
+        <div class="registered-person-header">
+            <div>
+                <h3>Recently Registered Person</h3>
+                <p>Saved person record is available below.</p>
+            </div>
+            <button type="button" class="btn-icon" (click)="clearRecentRegisteredPerson()" title="Dismiss" aria-label="Dismiss recently registered person">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="registered-person-details">
+            <div>
+                <span>Full Name</span>
+                <strong>{{ recentRegisteredPerson.firstName }} {{ recentRegisteredPerson.lastName }}</strong>
+            </div>
+            <div>
+                <span>ID Number</span>
+                <strong>{{ recentRegisteredPerson.maskedIdNumber || recentRegisteredPerson.idNumber || '-' }}</strong>
+            </div>
+            <div>
+                <span>Phone</span>
+                <strong>{{ recentRegisteredPerson.phoneNumber || '-' }}</strong>
+            </div>
+            <div>
+                <span>Email</span>
+                <strong>{{ recentRegisteredPerson.emailAddress || '-' }}</strong>
+            </div>
+            <div>
+                <span>Role</span>
+                <strong>{{ recentRegisteredPerson.personRole || '-' }}</strong>
+            </div>
+            <div>
+                <span>Registered</span>
+                <strong>{{ recentRegisteredPerson.createdAt ? (recentRegisteredPerson.createdAt | date:'yyyy-MM-dd') : '-' }}</strong>
+            </div>
+        </div>
+        <div class="registered-person-actions">
+            <button class="btn-secondary" (click)="viewRecentRegisteredPerson()">
+                <i class="fas fa-eye"></i> View Details
+            </button>
+            <button class="btn-primary" (click)="openLinkModal(recentRegisteredPerson)" *ngIf="canLinkPerson">
+                <i class="fas fa-link"></i> Link to Docket
+            </button>
+        </div>
+    </section>
+    
+    <!-- Person Register -->
+    <div class="persons-table" *ngIf="!isLoading && !error">
+        <table *ngIf="filteredPersons.length > 0">
+            <thead><tr><th>Person</th><th>ID Number</th><th>Contact</th><th>Role</th><th>Status</th><th class="person-actions-column">Actions</th></tr></thead>
+            <tbody>
+                <tr *ngFor="let person of filteredPersons">
+                    <td data-label="Person" class="person-name-cell"><i class="fas fa-user-circle" aria-hidden="true"></i><strong>{{ person.firstName }} {{ person.lastName }}</strong></td>
+                    <td data-label="ID Number">{{ person.maskedIdNumber || '—' }}</td>
+                    <td data-label="Contact"><div class="contact-stack"><span *ngIf="person.phoneNumber">{{ person.phoneNumber }}</span><small *ngIf="person.emailAddress">{{ person.emailAddress }}</small><span *ngIf="!person.phoneNumber && !person.emailAddress">—</span></div></td>
+                    <td data-label="Role"><span class="role-badge">{{ person.personRole || 'Not specified' }}</span></td>
+                    <td data-label="Status"><span [class]="person.isArchived ? 'person-status archived' : 'person-status active'">{{ person.isArchived ? 'Archived' : 'Active' }}</span></td>
+                    <td data-label="Actions" class="person-actions">
+                        <button type="button" class="btn-icon" (click)="viewPersonDetails(person)" title="View details" aria-label="View person details"><i class="fas fa-eye"></i></button>
+                        <button type="button" class="btn-icon" (click)="openEditModal(person)" title="Edit person" aria-label="Edit person" *ngIf="canCreateOrEditPerson && !person.isArchived"><i class="fas fa-edit"></i></button>
+                        <button type="button" class="btn-icon" (click)="openLinkModal(person)" title="Link person to docket" aria-label="Link person to docket" *ngIf="canLinkPerson && !person.isArchived"><i class="fas fa-link"></i></button>
+                        <button type="button" class="btn-icon" (click)="archivePerson(person)" title="Archive person" aria-label="Archive person" *ngIf="canArchivePerson && !person.isArchived"><i class="fas fa-archive"></i></button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="no-data" *ngIf="filteredPersons.length === 0 && searchTerm && searchTerm.length >= 2">
+            <i class="fas fa-users"></i>
+            <p>No persons found matching "{{ searchTerm }}"</p>
+        </div>
+        
+        <div class="no-data" *ngIf="filteredPersons.length === 0 && (!searchTerm || searchTerm.length < 2) && !isLoading">
+            <i class="fas fa-users"></i>
+            <p>No person records are available in your authorised station scope.</p>
+            <button class="btn-primary" (click)="openCreateModal()" *ngIf="canCreateOrEditPerson">
+                Register Person
+            </button>
+        </div>
+    </div>
+    
+    <div class="loading-spinner" *ngIf="isLoading">
+        <i class="fas fa-spinner fa-spin"></i> Searching...
+    </div>
+</div>
+
+<!-- Create Person Modal -->
+<div class="modal" [class.show]="showCreateModal" *ngIf="showCreateModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Register Person</h3>
+            <button type="button" class="close" (click)="closeCreateModal()" aria-label="Close register person dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form [formGroup]="createForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="createFirstName">First Name *</label>
+                        <input id="createFirstName" type="text" maxlength="100" formControlName="firstName" title="First Name" placeholder="Enter first name"
+                               [class.is-invalid]="createForm.get('firstName')?.invalid && createForm.get('firstName')?.touched">
+                        <div class="invalid-feedback" *ngIf="createForm.get('firstName')?.invalid && createForm.get('firstName')?.touched">
+                            Enter a name of 2 to 100 letters. Spaces, apostrophes, periods and hyphens are allowed.
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="createLastName">Last Name *</label>
+                        <input id="createLastName" type="text" maxlength="100" formControlName="lastName" title="Last Name" placeholder="Enter last name"
+                               [class.is-invalid]="createForm.get('lastName')?.invalid && createForm.get('lastName')?.touched">
+                        <div class="invalid-feedback" *ngIf="createForm.get('lastName')?.invalid && createForm.get('lastName')?.touched">
+                            Enter a surname of 2 to 100 letters. Spaces, apostrophes, periods and hyphens are allowed.
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="createIdNumber">ID Number *</label>
+                    <input id="createIdNumber" type="text" inputmode="numeric" maxlength="13" formControlName="idNumber" title="ID Number" placeholder="13-digit South African ID"
+                           [class.is-invalid]="createForm.get('idNumber')?.invalid && createForm.get('idNumber')?.touched">
+                    <small>Must be unique and contain exactly 13 digits.</small>
+                    <div class="invalid-feedback" *ngIf="createForm.get('idNumber')?.invalid && createForm.get('idNumber')?.touched">
+                        ID number is required and must be exactly 13 digits.
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="createDateOfBirth">Date of Birth *</label>
+                        <input id="createDateOfBirth" type="date" formControlName="dateOfBirth" [max]="todayDate" title="Date of Birth"
+                               [class.is-invalid]="createForm.get('dateOfBirth')?.invalid && createForm.get('dateOfBirth')?.touched">
+                        <div class="invalid-feedback" *ngIf="createForm.get('dateOfBirth')?.invalid && createForm.get('dateOfBirth')?.touched">
+                            Date of birth must be a valid date and cannot be in the future.
+                        </div>
+                        <div class="invalid-feedback" *ngIf="createForm.hasError('idBirthDateMismatch') && createForm.get('dateOfBirth')?.touched">
+                            Date of birth must match the first six digits (YYMMDD) of the South African ID number.
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="createPersonRoleID">Person Role *</label>
+                        <input id="createPersonRoleID" type="search" list="personRoleOptions" autocomplete="off"
+                               [value]="personRoleSearch" (input)="onPersonRoleSearch($any($event.target).value)"
+                               title="Search person role" placeholder="Search and select a role"
+                               [class.is-invalid]="createForm.get('personRoleID')?.invalid && createForm.get('personRoleID')?.touched">
+                        <datalist id="personRoleOptions">
+                            <option *ngFor="let role of personRoles" [value]="role.roleName"></option>
+                        </datalist>
+                        <div class="invalid-feedback" *ngIf="createForm.get('personRoleID')?.invalid && createForm.get('personRoleID')?.touched">
+                            Select a valid person role from the searchable list.
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="createPhoneNumber">Phone Number *</label>
+                    <input id="createPhoneNumber" type="tel" maxlength="12" inputmode="tel" formControlName="phoneNumber" title="Phone Number" placeholder="0712345678 or +27712345678"
+                           [class.is-invalid]="createForm.get('phoneNumber')?.invalid && createForm.get('phoneNumber')?.touched">
+                    <div class="invalid-feedback" *ngIf="createForm.get('phoneNumber')?.invalid && createForm.get('phoneNumber')?.touched">
+                        Enter 10 digits starting with 0, or +27 followed by 9 digits. Spaces and letters are not allowed.
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="createEmailAddress">Email Address *</label>
+                    <input id="createEmailAddress" type="email" maxlength="100" formControlName="emailAddress" title="Email Address" placeholder="Enter email address"
+                           [class.is-invalid]="createForm.get('emailAddress')?.invalid && createForm.get('emailAddress')?.touched">
+                    <div class="invalid-feedback" *ngIf="createForm.get('emailAddress')?.invalid && createForm.get('emailAddress')?.touched">
+                        Enter a valid email address.
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="createPhysicalAddress">Physical Address *</label>
+                    <textarea id="createPhysicalAddress" maxlength="500" formControlName="physicalAddress" rows="2" title="Physical Address" placeholder="Enter physical address"></textarea>
+                    <div class="invalid-feedback" *ngIf="createForm.get('physicalAddress')?.invalid && createForm.get('physicalAddress')?.touched">
+                        Enter a physical address of 5 to 500 characters.
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="closeCreateModal()" [disabled]="isLoading">Cancel</button>
+            <button type="button" class="btn-primary" (click)="createPerson()" [disabled]="createForm.invalid || isLoading">
+                {{ isLoading ? 'Saving...' : 'Save Person' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Person Modal -->
+<div class="modal" [class.show]="showEditModal" *ngIf="showEditModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Edit Person</h3>
+            <button type="button" class="close" (click)="closeEditModal()" aria-label="Close edit person dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form [formGroup]="editForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editFirstName">First Name *</label>
+                        <input id="editFirstName" type="text" maxlength="100" formControlName="firstName" title="First Name" placeholder="Enter first name" [readOnly]="isCscContactOnly">
+                    </div>
+                    <div class="form-group">
+                        <label for="editLastName">Last Name *</label>
+                        <input id="editLastName" type="text" maxlength="100" formControlName="lastName" title="Last Name" placeholder="Enter last name" [readOnly]="isCscContactOnly">
+                    </div>
+                </div>
+                <small class="field-help" *ngIf="isCscContactOnly">CSC Officers can update contact details only. Identity fields are read-only.</small>
+                <div class="form-group">
+                    <label for="editPhoneNumber">Phone Number</label>
+                    <input id="editPhoneNumber" type="tel" maxlength="12" inputmode="tel" formControlName="phoneNumber" title="Phone Number" placeholder="0712345678 or +27712345678"
+                           [class.is-invalid]="editForm.get('phoneNumber')?.invalid && editForm.get('phoneNumber')?.touched">
+                    <div class="invalid-feedback" *ngIf="editForm.get('phoneNumber')?.invalid && editForm.get('phoneNumber')?.touched">
+                        Enter 10 digits starting with 0, or +27 followed by 9 digits. Spaces and letters are not allowed.
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editEmailAddress">Email Address</label>
+                    <input id="editEmailAddress" type="email" maxlength="100" formControlName="emailAddress" title="Email Address" placeholder="Enter email address"
+                           [class.is-invalid]="editForm.get('emailAddress')?.invalid && editForm.get('emailAddress')?.touched">
+                    <div class="invalid-feedback" *ngIf="editForm.get('emailAddress')?.invalid && editForm.get('emailAddress')?.touched">
+                        Enter a valid email address of no more than 100 characters.
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editPhysicalAddress">Physical Address</label>
+                    <textarea id="editPhysicalAddress" maxlength="500" formControlName="physicalAddress" rows="2" title="Physical Address" placeholder="Enter physical address"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="closeEditModal()" [disabled]="isLoading">Cancel</button>
+            <button type="button" class="btn-primary" (click)="updatePerson()" [disabled]="editForm.invalid || isLoading">
+                {{ isLoading ? 'Updating...' : 'Update Person' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Person Details Modal -->
+<div class="modal" [class.show]="showDetailsModal" *ngIf="showDetailsModal && selectedPerson">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Person Details</h3>
+            <button type="button" class="close" (click)="closeDetailsModal()" aria-label="Close person details dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="details-section">
+                <h4>Personal Information</h4>
+                <div class="details-grid">
+                    <div><strong>Full Name:</strong> {{ selectedPerson.firstName }} {{ selectedPerson.lastName }}</div>
+                    <div><strong>ID Number:</strong> {{ selectedPerson.maskedIdNumber || selectedPerson.idNumber || '-' }}</div>
+                    <div>
+                        <strong>Date of Birth:</strong> 
+                        {{ selectedPerson.dateOfBirth ? (selectedPerson.dateOfBirth | date:'yyyy-MM-dd') : '-' }}
+                    </div>
+                    <div><strong>Role:</strong> {{ selectedPerson.personRole || '-' }}</div>
+                </div>
+            </div>
+            <div class="details-section">
+                <h4>Contact Information</h4>
+                <div class="details-grid">
+                    <div><strong>Phone:</strong> {{ selectedPerson.phoneNumber || '-' }}</div>
+                    <div><strong>Email:</strong> {{ selectedPerson.emailAddress || '-' }}</div>
+                    <div><strong>Address:</strong> {{ selectedPerson.physicalAddress || '-' }}</div>
+                </div>
+            </div>
+            <div class="details-section">
+                <h4>Additional Information</h4>
+                <div class="details-grid">
+                    <div>
+                        <strong>Registered:</strong> 
+                        {{ selectedPerson.createdAt ? (selectedPerson.createdAt | date:'yyyy-MM-dd') : '-' }}
+                    </div>
+                    <div><strong>Status:</strong> {{ selectedPerson.isArchived ? 'Archived' : 'Active' }}</div>
+                    <div *ngIf="selectedPerson.archiveReason"><strong>Archive reason:</strong> {{ selectedPerson.archiveReason }}</div>
+                </div>
+            </div>
+            <div class="details-section">
+                <h4>Linked Dockets</h4>
+                <div class="linked-dockets" *ngIf="selectedPerson.linkedDockets?.length; else noLinkedDockets">
+                    <a *ngFor="let link of selectedPerson.linkedDockets" [routerLink]="['/dockets', link.docketID]" (click)="closeDetailsModal()">
+                        <strong>{{ link.docketNumber }}</strong>
+                        <span>{{ link.relationshipRole }} · {{ link.status }}</span>
+                    </a>
+                </div>
+                <ng-template #noLinkedDockets><p>No linked dockets.</p></ng-template>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-danger" (click)="archivePerson(selectedPerson)" *ngIf="canArchivePerson && !selectedPerson.isArchived">
+                Archive Person
+            </button>
+            <button class="btn-secondary" (click)="closeDetailsModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Link to Docket Modal -->
+<div class="modal" [class.show]="showLinkModal" *ngIf="showLinkModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Link Person to Docket</h3>
+            <button type="button" class="close" (click)="closeLinkModal()" aria-label="Close link person dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p><strong>Person:</strong> {{ selectedPerson?.firstName }} {{ selectedPerson?.lastName }}</p>
+            <form [formGroup]="linkForm">
+                <div class="form-group">
+                    <label for="linkDocketID">Select Docket *</label>
+                    <select id="linkDocketID" formControlName="docketID" title="Select Docket">
+                        <option value="">Select Docket</option>
+                        <option *ngFor="let docket of dockets" [value]="docket.docketID">
+                            {{ getDocketDisplayName(docket) }} | OB: {{ docket.obReferenceNumber }}
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="linkRelationshipRole">Relationship to Docket *</label>
+                    <select id="linkRelationshipRole" formControlName="relationshipRole" title="Relationship to Docket">
+                        <option value="">Select relationship</option>
+                        <option *ngFor="let role of personRoles" [value]="role.roleName"
+                                [disabled]="currentUser?.roleName === 'CSC Officer' && role.roleName !== 'Complainant'">
+                            {{ role.roleName }}
+                        </option>
+                    </select>
+                    <small *ngIf="currentUser?.roleName === 'CSC Officer'">CSC Officers may link complainants only.</small>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="closeLinkModal()" [disabled]="isLoading">Cancel</button>
+            <button type="button" class="btn-primary" (click)="linkPersonToDocket()" [disabled]="linkForm.invalid || isLoading">
+                {{ isLoading ? 'Linking...' : 'Link to Docket' }}
+            </button>
+        </div>
+    </div>
+</div>

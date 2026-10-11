@@ -1,0 +1,160 @@
+<div class="reports-page">
+  <div class="page-header">
+    <div class="page-header-copy">
+      <h1>{{ dedicatedRegister ? 'Evidence, Docket & Uploader Register' : 'Report Management' }}</h1>
+      <p *ngIf="dedicatedRegister">A consolidated operational view joining each evidence item to its docket and the officer who uploaded it.</p>
+    </div>
+    <div class="export-actions">
+      <button type="button" class="btn-secondary" (click)="downloadCsv()" [disabled]="!report"><i class="fas fa-file-csv"></i> Export CSV</button>
+      <button type="button" class="btn-primary" (click)="downloadPdf()" [disabled]="!report || hasInvalidDateRange() || isDownloading">
+        <i class="fas" [class.fa-file-pdf]="!isDownloading" [class.fa-spinner]="isDownloading" [class.fa-spin]="isDownloading"></i>
+        {{ isDownloading ? 'Generating PDF...' : 'Export PDF' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="report-tabs" role="tablist" aria-label="Reports" *ngIf="!dedicatedRegister">
+    <button
+      type="button"
+      *ngFor="let item of reports"
+      [class.active]="item.key === selectedKey"
+      (click)="selectReport(item.key)"
+      [title]="item.label">
+      <span class="tab-title">{{ item.label }}</span>
+    </button>
+  </div>
+
+  <div class="criteria-bar" *ngIf="supportsDateCriteria() || supportsCrimeCategoryFilter() || supportsStatusCriteria()">
+    <label *ngIf="supportsDateCriteria()">
+      From
+      <input type="date" [(ngModel)]="fromDate" [max]="toDate || null">
+    </label>
+    <label *ngIf="supportsDateCriteria()">
+      To
+      <input type="date" [(ngModel)]="toDate" [min]="fromDate || null">
+    </label>
+    <label *ngIf="supportsStatusCriteria()">
+      Docket status
+      <select [(ngModel)]="status"><option value="">All statuses</option><option *ngFor="let option of statusOptions" [value]="option">{{ option }}</option></select>
+    </label>
+    <label *ngIf="supportsCrimeCategoryFilter()">
+      Crime category
+      <select [(ngModel)]="crimeCategory">
+        <option value="">All crime categories</option>
+        <option *ngFor="let category of crimeCategories" [value]="category">{{ category }}</option>
+      </select>
+    </label>
+    <button type="button" class="btn-secondary" (click)="loadReport()" [disabled]="hasInvalidDateRange()">
+      <i class="fas fa-filter"></i> Apply
+    </button>
+  </div>
+  <div class="status-message error" *ngIf="hasInvalidDateRange()" role="alert">The From date must be on or before the To date.</div>
+
+  <div class="status-message" *ngIf="isLoading">Loading report...</div>
+  <div class="status-message error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <section class="report-surface" *ngIf="report">
+    <div class="report-title">
+      <div class="report-heading">
+        <h2>{{ report.title }}</h2>
+        <div class="active-filters" *ngIf="activeFilterChips.length">
+          <span *ngFor="let chip of activeFilterChips">{{ chip }}</span>
+        </div>
+      </div>
+      <span>{{ selectedReport.label }}</span>
+    </div>
+
+    <div class="totals-strip" *ngIf="totalPairs.length">
+      <div *ngFor="let total of totalPairs">
+        <small>{{ total.key }}</small>
+        <strong>{{ formatValue(total.value) }}</strong>
+      </div>
+    </div>
+
+    <div class="chart-panel" *ngIf="displayedChart.length && selectedKey !== 'hotspot-analysis' && selectedKey !== 'station-workload'">
+      <div class="bar-row" *ngFor="let row of displayedChart">
+        <span>{{ chartLabel(row) }}</span>
+        <div class="bar-track">
+          <div class="bar-fill" [style.width]="chartWidth(row)"></div>
+        </div>
+        <strong>{{ formatValue(chartValue(row)) }}</strong>
+      </div>
+    </div>
+
+    <section class="heatmap-panel" *ngIf="selectedKey === 'hotspot-analysis' && displayedChart.length">
+      <div class="section-heading"><div><small>Location heatmap</small><h3>Cases reported by area</h3></div><span>Darker areas have more reported cases</span></div>
+      <div class="heatmap-grid">
+        <div class="heat-cell" *ngFor="let row of displayedChart" [style.background]="heatColour(row)">
+          <strong>{{ chartLabel(row) }}</strong><span>{{ chartValue(row) }} cases</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="decision-strip" *ngIf="selectedKey === 'station-workload' && busiestStation">
+      <div><small>Highest workload</small><strong>{{ busiestStation.station }}</strong><span>{{ busiestStation.total }} dockets</span></div>
+      <div><small>Average workload</small><strong>{{ averageStationWorkload }}</strong><span>dockets per station</span></div>
+      <div><small>Decision support</small><strong>Review capacity</strong><span>Prioritise the highest workload station</span></div>
+    </section>
+
+    <div class="table-wrap" *ngIf="selectedKey === 'station-workload' && !isTransactional">
+      <table>
+        <thead><tr><th>Province</th><th>Station</th><th *ngFor="let statusName of stationStatuses">{{ statusName }}</th><th>Total dockets</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let station of stationSummaries">
+            <td>{{ station.province }}</td><td>{{ station.station }}</td><td *ngFor="let statusName of stationStatuses">{{ station.statuses[statusName] || 0 }}</td><td><strong>{{ station.total }}</strong></td>
+          </tr>
+          <tr *ngIf="!stationSummaries.length"><td [attr.colspan]="stationStatuses.length + 3">No records match this report.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="control-breaks" *ngIf="isTransactional">
+      <details class="primary-break" *ngFor="let group of transactionalGroups; let groupIndex = index" [open]="groupIndex === 0">
+        <summary>
+          <div>
+            <small>{{ transactionPrimaryLabel }}</small>
+            <h3>{{ group.label }}</h3>
+          </div>
+          <strong>{{ group.subtotal }} {{ transactionUnit }}</strong>
+        </summary>
+        <details class="secondary-break" *ngFor="let section of group.sections">
+          <summary class="secondary-heading">
+            <span><small>{{ transactionSecondaryLabel }}</small><strong>{{ section.label }}</strong></span>
+            <span class="subtotal">Subtotal {{ section.subtotal }}</span>
+          </summary>
+          <div class="table-wrap nested-table">
+            <table>
+              <thead><tr><th *ngFor="let column of transactionDetailColumns">{{ column }}</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let row of section.rows">
+                  <td *ngFor="let column of transactionDetailColumns">{{ formatValue(row[column]) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+        <footer>{{ transactionPrimaryLabel }} subtotal: <strong>{{ group.subtotal }}</strong></footer>
+      </details>
+      <div class="grand-total" *ngIf="transactionalGroups.length">Grand total: <strong>{{ transactionGrandTotal }} {{ transactionUnit }}</strong></div>
+      <div class="empty-report" *ngIf="transactionalGroups.length === 0">No records match this report.</div>
+    </div>
+
+    <div class="table-wrap" *ngIf="!isTransactional && selectedKey !== 'station-workload'">
+      <table>
+        <thead>
+          <tr>
+            <th *ngFor="let column of displayedColumns">{{ column }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of displayedRows">
+            <td *ngFor="let column of displayedColumns">{{ formatValue(row[column]) }}</td>
+          </tr>
+          <tr *ngIf="displayedRows.length === 0">
+            <td [attr.colspan]="displayedColumns.length">No records match this report.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

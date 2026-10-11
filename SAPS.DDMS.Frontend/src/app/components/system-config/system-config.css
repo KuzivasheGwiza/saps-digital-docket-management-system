@@ -1,0 +1,30 @@
+.sysconfig-page { padding: 24px; max-width: 960px; margin: 0 auto; animation: fadeUp .3s ease; }
+@keyframes fadeUp { from { opacity:0;transform:translateY(8px); } to { opacity:1;transform:translateY(0); } }
+.page-header { margin-bottom: 24px; }
+.page-header h2 { color: #001F3F; display:flex;align-items:center;gap:10px;margin:0 0 4px; }
+.subtitle { color: #637083; font-size: 13px; margin: 0; }
+.config-card { background:#fff;border:1px solid #D8DEE6;border-radius:8px;overflow:hidden;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,31,63,.06); }
+.config-card-header { padding:14px 20px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:10px; }
+.config-card-header.timer { background:linear-gradient(135deg,#001F3F,#0058A3);color:#fff; }
+.config-card-header.rules { background:linear-gradient(135deg,#7A5C00,#C8A951);color:#fff; }
+.config-card-header.security { background:linear-gradient(135deg,#0A7040,#00875A);color:#fff; }
+.badge-note { margin-left:auto;font-size:11px;font-weight:400;background:rgba(255,255,255,.2);padding:2px 8px;border-radius:10px; }
+.config-table-wrap { overflow-x:auto; }
+.config-table { width:100%;border-collapse:collapse; }
+.config-table thead th { background:#F6F8FA;color:#4A5568;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:10px 16px;text-align:left;border-bottom:1px solid #D8DEE6; }
+.config-table tbody tr { border-bottom:1px solid #EEF1F5;transition:background .1s; }
+.config-table tbody tr:hover { background:#F6F8FA; }
+.config-table tbody td { padding:12px 16px;font-size:13px;vertical-align:middle; }
+.setting-key { font-size:11px;color:#8FA0B4;font-family:monospace;margin-top:2px; }
+.setting-value { font-size:15px;font-weight:700;color:#001F3F; }
+.unit-badge { background:#EEF1F5;color:#4A5568;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600; }
+.edit-input { padding:6px 10px;border:1px solid #0058A3;border-radius:4px;font-size:13px;width:80px;box-shadow:0 0 0 3px rgba(0,88,163,.12); }
+.edit-input.wide { width:110px; }
+.actions-cell { display:flex;gap:6px;align-items:center; }
+.btn-edit,.btn-save,.btn-cancel { padding:5px 12px;border-radius:4px;font-size:12px;font-family:inherit;cursor:pointer;border:1px solid;display:inline-flex;align-items:center;gap:5px; }
+.btn-edit { background:#fff;color:#001F3F;border-color:#D8DEE6; }
+.btn-edit:hover { border-color:#0058A3;color:#0058A3; }
+.btn-save { background:#001F3F;color:#fff;border-color:#001F3F; }
+.btn-save:hover { background:#0058A3; }
+.btn-cancel { background:#fff;color:#637083;border-color:#D8DEE6; }
+.loading-spinner { text-align:center;padding:48px;color:#8FA0B4; }

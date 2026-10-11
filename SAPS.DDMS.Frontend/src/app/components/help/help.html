@@ -1,0 +1,105 @@
+<div class="help-page">
+  <div class="help-header">
+    <div>
+      <h1>SAPS DDMS Help</h1>
+      <p>Searchable help for the current system workflows.</p>
+    </div>
+    <a class="btn-secondary" routerLink="/dashboard" title="Return to dashboard">
+      <i class="fas fa-arrow-left"></i> Dashboard
+    </a>
+  </div>
+
+  <div class="help-search">
+    <i class="fas fa-search"></i>
+    <input
+      type="text"
+      [(ngModel)]="searchTerm"
+      placeholder="Search help by screen, role, task, or permission"
+      title="Search the help document">
+  </div>
+
+  <div class="help-layout">
+    <aside class="topic-list" aria-label="Help topics">
+      <button
+        *ngFor="let topic of filteredTopics"
+        type="button"
+        [class.active]="selectedTopic.id === topic.id"
+        (click)="selectTopic(topic.id)"
+        [title]="'Open help for ' + topic.title">
+        <span>{{ topic.title }}</span>
+        <small>{{ topic.audience }}</small>
+      </button>
+
+      <div class="empty-state" *ngIf="filteredTopics.length === 0">
+        No help topics match your search.
+      </div>
+    </aside>
+
+    <section class="topic-detail">
+      <div class="topic-meta">
+        <span>Context-sensitive Help</span>
+        <strong>{{ selectedTopic.audience }}</strong>
+      </div>
+      <h2>{{ selectedTopic.title }}</h2>
+      <ol>
+        <li *ngFor="let step of selectedTopic.steps">{{ step }}</li>
+      </ol>
+    </section>
+  </div>
+
+  <!-- Complexity 1m — Audio/Video in appropriate business context -->
+  <section class="topic-detail" *ngIf="filteredFaqs.length">
+    <div class="topic-meta">
+      <span>FAQ</span>
+      <strong>{{ filteredFaqs.length }} available</strong>
+    </div>
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-list">
+      <details *ngFor="let faq of filteredFaqs">
+        <summary>{{ faq.question }}</summary>
+        <p>{{ faq.answer }}</p>
+      </details>
+    </div>
+  </section>
+
+  <div class="help-video-section">
+    <h3><i class="fas fa-graduation-cap"></i> SAPS DDMS Training</h3>
+    <p class="video-intro">Use the local briefing audio and open a guided workflow below.</p>
+    <div class="audio-card">
+      <div>
+        <h4>Shift Briefing Audio Cue</h4>
+        <p>Local audio media for DDMS training and briefing contexts.</p>
+      </div>
+      <audio controls preload="metadata">
+        <source src="assets/audio/ddms-orientation.wav" type="audio/wav">
+        Your browser does not support audio playback.
+      </audio>
+    </div>
+    <div class="video-grid" aria-label="Interactive training guides">
+      <button type="button" class="video-card training-card" (click)="selectTopic('dashboard')">
+        <div class="video-thumb"><i class="fas fa-tachometer-alt"></i></div>
+        <div class="video-info">
+          <h4>Getting Started with SAPS DDMS</h4>
+          <p>Open the dashboard navigation and key-feature guide.</p>
+          <span class="video-duration">Open guide</span>
+        </div>
+      </button>
+      <button type="button" class="video-card training-card" (click)="selectTopic('dockets')">
+        <div class="video-thumb"><i class="fas fa-folder-open"></i></div>
+        <div class="video-info">
+          <h4>Creating and Managing Dockets</h4>
+          <p>Open the create, allocation, review and update workflow guide.</p>
+          <span class="video-duration">Open guide</span>
+        </div>
+      </button>
+      <button type="button" class="video-card training-card" (click)="selectTopic('evidence')">
+        <div class="video-thumb"><i class="fas fa-box"></i></div>
+        <div class="video-info">
+          <h4>Evidence &amp; Chain of Custody</h4>
+          <p>Open the evidence creation, transfer and custody-history guide.</p>
+          <span class="video-duration">Open guide</span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>

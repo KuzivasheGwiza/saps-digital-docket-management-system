@@ -1,0 +1,130 @@
+<div class="login-container">
+  <main class="login-card" aria-labelledby="login-title">
+    <header class="login-header">
+      <img
+        src="/saps-badge.svg"
+        alt="South African Police Service badge"
+        class="auth-logo">
+      <h1 id="login-title">SAPS Digital Docket Management System</h1>
+      <p>Secure access for authorised personnel</p>
+    </header>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate autocomplete="off">
+      <div class="form-group" *ngIf="!otpRequired">
+        <label for="personnel-number">Personnel number or email address</label>
+        <input
+          id="personnel-number"
+          type="text"
+          formControlName="personnelNumber"
+          required
+          autocomplete="off"
+          autocapitalize="off"
+          autocorrect="off"
+          spellcheck="false"
+          placeholder="Enter personnel number or email"
+          (input)="clearLoginError()"
+          [class.is-invalid]="isFieldInvalid('personnelNumber')"
+          [attr.aria-invalid]="isFieldInvalid('personnelNumber')"
+          aria-describedby="personnel-number-error">
+        <div
+          id="personnel-number-error"
+          class="invalid-feedback"
+          role="alert"
+          *ngIf="isFieldInvalid('personnelNumber')">
+          Personnel number or email address is required.
+        </div>
+      </div>
+
+      <div class="form-group" *ngIf="!otpRequired">
+        <label for="login-password">Password</label>
+        <div class="password-input-wrapper">
+          <input
+            id="login-password"
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            required
+            autocomplete="new-password"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+            placeholder="Enter your password"
+            (input)="clearLoginError()"
+            (keydown)="updateCapsLockState($event)"
+            (keyup)="updateCapsLockState($event)"
+            (blur)="onPasswordBlur()"
+            [class.is-invalid]="isFieldInvalid('password')"
+            [attr.aria-invalid]="isFieldInvalid('password')"
+            aria-describedby="login-password-error caps-lock-warning">
+          <button
+            type="button"
+            class="toggle-password"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+            {{ showPassword ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+        <div
+          id="login-password-error"
+          class="invalid-feedback"
+          role="alert"
+          *ngIf="isFieldInvalid('password')">
+          Password is required.
+        </div>
+        <p
+          id="caps-lock-warning"
+          class="caps-lock-warning"
+          role="status"
+          aria-live="polite"
+          *ngIf="capsLockOn">
+          Caps Lock is on.
+        </p>
+      </div>
+
+      <div class="form-group" *ngIf="otpRequired">
+        <label for="otp-code">One-time PIN</label>
+        <input
+          id="otp-code"
+          type="text"
+          formControlName="otpCode"
+          maxlength="6"
+          required
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          placeholder="Enter 6-digit PIN"
+          (input)="clearLoginError()"
+          [class.is-invalid]="isFieldInvalid('otpCode')"
+          [attr.aria-invalid]="isFieldInvalid('otpCode')"
+          aria-describedby="otp-code-error otp-delivery-hint">
+        <div
+          id="otp-code-error"
+          class="invalid-feedback"
+          role="alert"
+          *ngIf="isFieldInvalid('otpCode')">
+          Enter the 6-digit one-time PIN.
+        </div>
+        <p id="otp-delivery-hint" class="otp-hint">{{ deliveryHint }}</p>
+        <button type="button" class="link-button" (click)="restartLogin()">
+          Use different login details
+        </button>
+      </div>
+
+      <div class="form-links" *ngIf="!otpRequired">
+        <a routerLink="/forgot-password">Forgot password?</a>
+      </div>
+
+      <div class="error-message" *ngIf="errorMessage" role="alert">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="isLoading">
+        <span class="button-spinner" *ngIf="isLoading" aria-hidden="true"></span>
+        <span>{{ isLoading ? (otpRequired ? 'Verifying…' : 'Signing in…') : (otpRequired ? 'Verify PIN' : 'Sign in') }}</span>
+      </button>
+    </form>
+
+    <footer class="login-footer">
+      <strong>South African Police Service</strong><br>
+      Authorised personnel only &bull; All access is monitored and logged
+    </footer>
+  </main>
+</div>

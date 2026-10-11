@@ -1,0 +1,98 @@
+<div class="log-page">
+  <div class="page-header">
+    <div>
+      <h2>Audit Trail</h2>
+      <p>Review system activity by date, user and transaction type.</p>
+    </div>
+    <div class="page-header-actions">
+      <a class="btn-secondary" [routerLink]="['/help']" [queryParams]="{ topic: 'audit' }">
+        <i class="fas fa-circle-info" aria-hidden="true"></i> Audit Help
+      </a>
+      <button type="button" class="btn-primary" (click)="exportLogs()" [disabled]="isExporting || !!dateRangeError">
+        <i class="fas" [class.fa-file-csv]="!isExporting" [class.fa-spinner]="isExporting" [class.fa-spin]="isExporting" aria-hidden="true"></i>
+        {{ isExporting ? 'Preparing CSV...' : 'Export CSV' }}
+      </button>
+    </div>
+  </div>
+
+  <form class="filters-bar" (ngSubmit)="loadLogs()" aria-label="Audit trail filters">
+    <div class="filter-field search-field">
+      <label for="audit-search">Search</label>
+      <div class="search-bar">
+        <input id="audit-search" name="searchTerm" type="search" [(ngModel)]="searchTerm" placeholder="Action, entity or reason">
+        <i class="fas fa-search" aria-hidden="true"></i>
+      </div>
+    </div>
+
+    <div class="filter-field">
+      <label for="audit-action">Action / transaction type</label>
+      <input id="audit-action" name="actionType" type="text" [(ngModel)]="actionType" list="audit-action-options" placeholder="All actions">
+      <datalist id="audit-action-options">
+        <option *ngFor="let action of actionOptions" [value]="action"></option>
+      </datalist>
+    </div>
+
+    <div class="filter-field">
+      <label for="audit-user">User</label>
+      <select id="audit-user" name="selectedUserId" [(ngModel)]="selectedUserId">
+        <option [ngValue]="null">All users</option>
+        <option *ngFor="let user of userOptions" [ngValue]="user.id">{{ user.name }} ({{ user.id }})</option>
+      </select>
+    </div>
+
+    <div class="filter-field">
+      <label for="audit-from">From date</label>
+      <input id="audit-from" name="fromDate" type="date" [(ngModel)]="fromDate" [attr.max]="toDate || null">
+    </div>
+
+    <div class="filter-field">
+      <label for="audit-to">To date</label>
+      <input id="audit-to" name="toDate" type="date" [(ngModel)]="toDate" [attr.min]="fromDate || null">
+    </div>
+
+    <div class="filter-actions">
+      <button type="submit" class="btn-primary" [disabled]="isLoading">
+        <i class="fas fa-filter" aria-hidden="true"></i> Apply filters
+      </button>
+      <button type="button" class="btn-secondary" (click)="resetFilters()" [disabled]="isLoading">Clear</button>
+    </div>
+  </form>
+
+  <p class="field-error" *ngIf="dateRangeError" role="alert">{{ dateRangeError }}</p>
+  <p class="load-message" *ngIf="isLoading" role="status"><i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Loading audit records...</p>
+  <p class="field-error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
+
+  <div class="audit-table-wrap">
+  <table class="data-table" *ngIf="!isLoading">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>User</th>
+        <th>Action</th>
+        <th>Entity</th>
+        <th>Reason</th>
+        <th>Details</th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container *ngFor="let log of logs">
+      <tr>
+        <td>{{ log.timestamp | date:'yyyy-MM-dd HH:mm' }}</td>
+        <td>{{ log.userName || ('User #' + log.fK_UserID) }}</td>
+        <td>{{ log.actionType }}</td>
+        <td>{{ log.affectedEntity }} #{{ log.affectedEntityID || '-' }}</td>
+        <td>{{ log.reason || '-' }}</td>
+        <td>
+          <div class="details-cell">
+            <span>{{ getPayloadSummary(log) }}</span>
+          </div>
+        </td>
+      </tr>
+      </ng-container>
+      <tr *ngIf="logs.length === 0">
+        <td colspan="6" class="no-data">No audit records found.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div>

@@ -1,0 +1,42 @@
+.ai-extraction-review { background:#f7fafc; border:1px solid #c7d5e3; border-radius:14px; margin-top:16px; overflow:hidden; padding:18px; }
+.ai-review-heading { align-items:flex-start; display:flex; gap:18px; justify-content:space-between; margin-bottom:18px; }
+.ai-review-heading small { color:#526b82; font-size:10px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; }
+.ai-review-heading h5 { color:#0b2947; font-size:18px; margin:3px 0 4px; }
+.ai-review-heading p { color:#5f7183; font-size:13px; margin:0; }
+.ai-technical-toggle { flex:0 0 auto; white-space:nowrap; }
+.ai-review-section { border:0; border-top:1px solid #d9e3ec; margin:0; padding:16px 0 5px; }
+.ai-review-section legend { color:#173d61; font-size:13px; font-weight:800; letter-spacing:.03em; padding:0 10px 0 0; }
+.ai-review-grid { display:grid; gap:14px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.ai-review-field { display:flex; flex-direction:column; min-width:0; }
+.ai-review-field-wide { grid-column:1 / -1; }
+.ai-review-field label { color:#314a61; font-size:11px; font-weight:800; letter-spacing:.05em; margin-bottom:6px; text-transform:uppercase; }
+.ai-review-field input,.ai-review-field textarea { background:#fff; border:1px solid #b8c8d8; border-radius:8px; box-sizing:border-box; color:#142f49; font:inherit; padding:10px 12px; width:100%; }
+.ai-review-field input { min-height:43px; }
+.ai-review-field textarea { line-height:1.45; resize:vertical; }
+.ai-review-field input:focus,.ai-review-field textarea:focus { border-color:#1479c9; box-shadow:0 0 0 3px rgba(20,121,201,.12); outline:none; }
+.ai-review-field input[readonly],.ai-review-field textarea[readonly] { background:#edf2f6; color:#52677c; cursor:not-allowed; }
+.ai-readonly-note { color:#6a7b8d; font-size:10px; margin-top:5px; }
+.ai-technical-data { background:#10283f; border-radius:10px; color:#e8f2fb; margin-top:14px; overflow:hidden; }
+.ai-technical-data > div { align-items:center; background:#183a59; display:flex; font-size:12px; justify-content:space-between; padding:9px 12px; }
+.ai-technical-data > div span { color:#b9cddd; font-size:10px; text-transform:uppercase; }
+.ai-technical-data pre { font-family:Consolas,'Courier New',monospace; font-size:12px; line-height:1.45; margin:0; max-height:300px; overflow:auto; padding:14px; white-space:pre-wrap; }
+.ai-review-notice { align-items:flex-start; background:#edf6ff; border-left:4px solid #1479c9; color:#35536e; display:flex; font-size:12px; gap:9px; margin-top:16px; padding:10px 12px; }
+.ai-review-notice i { color:#1479c9; margin-top:2px; }
+@media (max-width:700px) { .ai-review-heading { flex-direction:column; } .ai-review-grid { grid-template-columns:minmax(0,1fr); } .ai-review-field-wide { grid-column:auto; } .ai-technical-toggle { width:100%; } }
+.related-cases-review { background:#f7fafc; border:1px solid #c7d5e3; border-radius:14px; margin-top:16px; padding:18px; }
+.related-case-card { background:#fff; border:1px solid #cbd8e5; border-radius:11px; margin-top:12px; overflow:hidden; transition:opacity .2s ease; }
+.related-case-card header { align-items:center; background:#edf5fb; display:flex; gap:16px; justify-content:space-between; padding:11px 14px; }
+.related-case-card header > div { display:grid; gap:2px; }
+.related-case-card header span { color:#64798c; font-size:10px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+.related-case-card header strong { color:#123b60; font-size:14px; }
+.related-case-include { align-items:center; color:#314f69; cursor:pointer; display:flex; font-size:12px; font-weight:700; gap:7px; }
+.related-case-include input { height:17px; width:17px; }
+.related-case-fields { display:grid; gap:14px; grid-template-columns:minmax(150px,.35fr) minmax(0,1fr); padding:14px; }
+.related-score-input { align-items:center; display:flex; gap:8px; }
+.related-score-input input { min-width:0; }
+.related-score-input span { background:#e5f1fb; border-radius:999px; color:#0d5f9d; flex:0 0 auto; font-size:12px; font-weight:800; padding:6px 9px; }
+.related-case-excluded { opacity:.58; }
+.related-case-actions { align-items:center; display:flex; gap:16px; justify-content:space-between; margin-top:15px; }
+.related-case-actions .ai-review-notice { flex:1; margin-top:0; }
+.related-case-actions .btn-primary { flex:0 0 auto; }
+@media (max-width:700px) { .related-case-fields { grid-template-columns:minmax(0,1fr); } .related-case-card header,.related-case-actions { align-items:stretch; flex-direction:column; } .related-case-actions .btn-primary { width:100%; } }

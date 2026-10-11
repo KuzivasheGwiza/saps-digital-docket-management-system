@@ -1,0 +1,230 @@
+<!-- src/app/components/investigation-notes/investigation-notes.html -->
+<div class="investigation-notes">
+    <div class="page-header">
+        <div>
+            <h2>Investigation Notes</h2>
+            <p *ngIf="docket">Case file: {{ getDocketDisplayName() }} | OB: {{ docket.obReferenceNumber }}</p>
+        </div>
+        <button class="btn-primary" (click)="openCreateModal()" *ngIf="canCreateNote">
+            <i class="fas fa-plus"></i> Add Note
+        </button>
+    </div>
+
+    <section class="archive-review-panel" *ngIf="canReviewArchive && archiveRequests.length">
+        <h3>Archive Requests</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Requested</th>
+                    <th>Note</th>
+                    <th>Reason</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let request of archiveRequests">
+                    <td>{{ request.requestedAt | date:'yyyy-MM-dd HH:mm' }}</td>
+                    <td>{{ request.noteDescription | slice:0:90 }}</td>
+                    <td>{{ request.reason }}</td>
+                    <td>
+                        <button class="btn-primary" (click)="reviewArchiveRequest(request, 'Approved')">Approve</button>
+                        <button class="btn-secondary" (click)="reviewArchiveRequest(request, 'Rejected')">Reject</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+    
+    <!-- Notes Timeline -->
+    <div class="notes-timeline" *ngIf="!isLoading">
+        <div class="timeline-item" *ngFor="let note of notes">
+            <div class="timeline-marker">
+                <i class="fas fa-sticky-note"></i>
+            </div>
+            <div class="timeline-content">
+                <div class="note-header">
+                    <span class="note-author">
+                        <i class="fas fa-user"></i> {{ note.authorName }}
+                    </span>
+                    <span class="status-badge" *ngIf="note.status">{{ note.status }}</span>
+                    <span class="note-date">
+                        <i class="fas fa-calendar"></i> 
+                        {{ note.entryDate ? (note.entryDate | date:'yyyy-MM-dd HH:mm') : '-' }}
+                    </span>
+                </div>
+                <div class="note-body">
+                    <p>{{ note.description }}</p>
+                </div>
+                <div class="note-attachments" *ngIf="note.attachments?.length">
+                    <strong>Attachments:</strong>
+                    <div class="attachment-list">
+                        <button *ngFor="let att of note.attachments"
+                           type="button"
+                           (click)="downloadAttachment(att)"
+                           class="attachment-link">
+                            <i [class]="getFileIcon(att.fileName)"></i>
+                            {{ att.fileName }} ({{ (att.fileSize / 1024).toFixed(1) }} KB)
+                        </button>
+                    </div>
+                </div>
+                <div class="note-actions" *ngIf="canEditNoteRecord(note) || canViewVersions || canRequestArchiveNote(note)">
+                    <button type="button" class="btn-icon" *ngIf="canEditNoteRecord(note)" (click)="openEditModal(note)" title="Edit note" aria-label="Edit investigation note">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" class="btn-icon" *ngIf="canViewVersions" (click)="viewVersions(note)" title="View version history" aria-label="View note version history">
+                        <i class="fas fa-history"></i>
+                    </button>
+                    <!-- UC 4.4 — Request Archive -->
+                    <button type="button" class="btn-icon" (click)="openArchiveRequestModal(note)"
+                             title="Request Archive"
+                             aria-label="Request note archive"
+                            *ngIf="canRequestArchiveNote(note)">
+                        <i class="fas fa-archive"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="no-notes" *ngIf="notes.length === 0">
+            <i class="fas fa-sticky-note"></i>
+            <p>No investigation notes have been added yet.</p>
+            <button class="btn-primary" (click)="openCreateModal()" *ngIf="canCreateNote">
+                Add First Note
+            </button>
+        </div>
+    </div>
+    
+    <div class="loading-spinner" *ngIf="isLoading">
+        <i class="fas fa-spinner fa-spin"></i> Loading...
+    </div>
+</div>
+
+<!-- Create Note Modal -->
+<div class="modal" [class.show]="showCreateModal" *ngIf="showCreateModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add Investigation Note</h3>
+            <button type="button" class="close" (click)="closeCreateModal()" aria-label="Close add investigation note dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form [formGroup]="createForm">
+                <div class="form-group">
+                    <label>Note Content *</label>
+                    <textarea formControlName="description" rows="6" minlength="10" maxlength="256"
+                              placeholder="Document your investigation finding, interview, or update..."></textarea>
+                    <small>Minimum 10 characters</small>
+                </div>
+                <div class="form-group">
+                    <label>Attachment (Optional)</label>
+                    <input type="file" (change)="onFileSelected($event)"
+                           accept="application/pdf,image/jpeg,image/png" [class.is-invalid]="!!fileValidationMessage">
+                    <small>Supported files: PDF, JPG, PNG (Max 10 MB)</small>
+                    <div class="invalid-feedback" *ngIf="fileValidationMessage">{{ fileValidationMessage }}</div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="closeCreateModal()" [disabled]="isLoading">Cancel</button>
+            <button type="button" class="btn-primary" (click)="createNote()" [disabled]="createForm.invalid || isLoading || !!fileValidationMessage">
+                {{ isLoading ? 'Saving...' : 'Save Note' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Note Modal -->
+<div class="modal" [class.show]="showEditModal" *ngIf="showEditModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Edit Investigation Note</h3>
+            <button type="button" class="close" (click)="closeEditModal()" aria-label="Close edit investigation note dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form [formGroup]="editForm">
+                <div class="form-group">
+                    <label>Note Content *</label>
+                    <textarea formControlName="description" rows="6" minlength="10" maxlength="256"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Reason for Change *</label>
+                    <textarea formControlName="reason" rows="3" minlength="10" maxlength="256"
+                              placeholder="Explain why you are making this change"></textarea>
+                    <small>Minimum 10 characters</small>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="closeEditModal()" [disabled]="isLoading">Cancel</button>
+            <button type="button" class="btn-primary" (click)="updateNote()" [disabled]="editForm.invalid || isLoading">
+                {{ isLoading ? 'Updating...' : 'Update Note' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Version History Modal -->
+<div class="modal" [class.show]="showVersionModal" *ngIf="showVersionModal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h3>Version History</h3>
+            <button type="button" class="close" (click)="closeVersionModal()" aria-label="Close version history dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="version-list">
+                <div class="version-item" *ngFor="let version of noteVersions; let i = index">
+                    <div class="version-header">
+                        <strong>Version {{ version.versionNumber || noteVersions.length - i }}</strong>
+                        <span>{{ version.editedAt ? (version.editedAt | date:'yyyy-MM-dd HH:mm') : '-' }}</span>
+                    </div>
+                    <div class="version-reason">
+                        <strong>Reason:</strong> {{ version.reason }}
+                    </div>
+                    <div class="version-content">
+                        <div class="version-before">
+                            <strong>Before:</strong>
+                            <p>{{ version.noteTextBefore }}</p>
+                        </div>
+                        <div class="version-after" *ngIf="version.noteTextAfter">
+                            <strong>After:</strong>
+                            <p>{{ version.noteTextAfter }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" (click)="closeVersionModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- UC 4.4 — Archive Investigation Note Request Modal -->
+<div class="modal show" *ngIf="showArchiveRequestModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Request Note Archive</h3>
+            <button type="button" class="close" (click)="closeArchiveRequestModal()" aria-label="Close archive request dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p><strong>Note:</strong> {{ archiveRequestNote?.description | slice:0:80 }}...</p>
+            <div class="form-group">
+                <label for="archiveReason">Reason for Archive Request *</label>
+                <textarea id="archiveReason"
+                          [(ngModel)]="archiveRequestReason"
+                          class="form-control" rows="4"
+                          placeholder="Provide a reason (minimum 10 characters)..."
+                          maxlength="500"></textarea>
+                <small class="field-help">{{ archiveRequestReason.length }}/500 characters. Requires DSC Supervisor approval.</small>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" (click)="closeArchiveRequestModal()">Cancel</button>
+            <button class="btn-primary" (click)="submitArchiveRequest()"
+                    [disabled]="isSubmittingArchive || archiveRequestReason.trim().length < 10">
+                <i class="fas fa-spinner fa-spin" *ngIf="isSubmittingArchive"></i>
+                <span *ngIf="!isSubmittingArchive"><i class="fas fa-paper-plane"></i> Submit Request</span>
+            </button>
+        </div>
+    </div>
+</div>

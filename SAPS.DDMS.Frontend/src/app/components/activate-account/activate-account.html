@@ -1,0 +1,75 @@
+<div class="activate-container">
+  <main class="activate-card" aria-labelledby="activate-title">
+    <header class="activate-header">
+      <img src="/saps-badge.svg" alt="South African Police Service badge" class="auth-logo">
+      <h1 id="activate-title">Set your password</h1>
+      <p>Create a secure password to activate your account</p>
+    </header>
+
+    <div class="invalid-link" *ngIf="!hasValidActivationLink" role="alert">
+      <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+      <div>
+        <strong>This activation link is incomplete.</strong>
+        <span>Ask your System Administrator to resend the activation link.</span>
+      </div>
+    </div>
+
+    <form *ngIf="hasValidActivationLink" [formGroup]="activateForm" (ngSubmit)="onSubmit()" novalidate>
+      <div class="form-group">
+        <label for="activation-password">Password</label>
+        <div class="password-wrapper">
+          <input
+            id="activation-password"
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            minlength="12"
+            maxlength="128"
+            autocomplete="new-password"
+            placeholder="Minimum 12 characters"
+            [class.is-invalid]="activateForm.get('password')?.invalid && activateForm.get('password')?.touched"
+            [attr.aria-invalid]="activateForm.get('password')?.invalid && activateForm.get('password')?.touched"
+            aria-describedby="password-hint activation-password-error">
+          <button
+            type="button"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+            {{ showPassword ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+        <small id="password-hint" class="hint">Use at least 12 characters, including uppercase, lowercase, a number and a special character.</small>
+        <div id="activation-password-error" class="error" *ngIf="activateForm.get('password')?.invalid && activateForm.get('password')?.touched">
+          Enter 12 to 128 characters with uppercase, lowercase, a number and a special character.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="activation-confirm-password">Confirm password</label>
+        <div class="password-wrapper">
+          <input
+            id="activation-confirm-password"
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            formControlName="confirmPassword"
+            autocomplete="new-password"
+            placeholder="Confirm your password"
+            [class.is-invalid]="activateForm.errors?.['mismatch'] && activateForm.get('confirmPassword')?.touched"
+            [attr.aria-invalid]="activateForm.errors?.['mismatch'] && activateForm.get('confirmPassword')?.touched"
+            aria-describedby="activation-confirm-password-error">
+          <button
+            type="button"
+            (click)="toggleConfirmPasswordVisibility()"
+            [attr.aria-label]="showConfirmPassword ? 'Hide confirmed password' : 'Show confirmed password'">
+            {{ showConfirmPassword ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+        <div id="activation-confirm-password-error" class="error" *ngIf="activateForm.errors?.['mismatch'] && activateForm.get('confirmPassword')?.touched">
+          Passwords do not match.
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="activateForm.invalid || isLoading">
+        <span class="button-spinner" *ngIf="isLoading" aria-hidden="true"></span>
+        <span>{{ isLoading ? 'Activating...' : 'Activate account' }}</span>
+      </button>
+    </form>
+  </main>
+</div>

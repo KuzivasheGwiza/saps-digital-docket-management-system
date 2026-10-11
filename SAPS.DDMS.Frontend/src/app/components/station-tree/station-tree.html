@@ -1,0 +1,142 @@
+<!-- Complexity 1i: Tree view | 1j: Dynamic tree CRUD -->
+<div class="tree-page">
+  <div class="page-header">
+    <div>
+      <h2><i class="fas fa-sitemap"></i> Station Hierarchy</h2>
+      <p class="subtitle">Province → Station → Docket Count — live data from database</p>
+    </div>
+    <div class="header-actions" *ngIf="isAdmin">
+      <button class="btn-secondary" (click)="openAddCityModal()"><i class="fas fa-city"></i> Add City</button>
+      <button class="btn-primary" (click)="openAddModal()"><i class="fas fa-plus"></i> Add Station</button>
+    </div>
+  </div>
+
+  <div class="loading-spinner" *ngIf="isLoading">
+    <i class="fas fa-spinner fa-spin"></i> Loading station tree...
+  </div>
+
+  <!-- Tree Structure -->
+  <div class="tree-root" *ngIf="!isLoading">
+    <div class="province-node" *ngFor="let prov of tree">
+      <!-- Province level -->
+      <div class="tree-node province" (click)="toggleProvince(prov)">
+        <i class="fas" [class.fa-chevron-down]="prov.expanded" [class.fa-chevron-right]="!prov.expanded"></i>
+        <i class="fas fa-map-marker-alt province-icon"></i>
+        <span class="node-label">{{ prov.province }}</span>
+        <span class="node-badge">{{ prov.stations.length }} station{{ prov.stations.length !== 1 ? 's' : '' }}</span>
+      </div>
+
+      <!-- Station level -->
+      <div class="station-list" *ngIf="prov.expanded">
+        <section class="city-node" *ngFor="let city of citiesForProvince(prov)">
+          <div class="tree-node city"><i class="fas fa-city" aria-hidden="true"></i><span class="node-label">{{ city }}</span><span class="node-badge">{{ stationsForCity(prov, city).length }} stations</span>
+            <div class="tree-actions" *ngIf="isAdmin">
+              <button type="button" class="tree-btn" (click)="editCity(prov, city)" title="Edit city" aria-label="Edit city"><i class="fas fa-edit"></i></button>
+              <button type="button" class="tree-btn danger" (click)="deleteCity(prov, city)" title="Remove city" aria-label="Remove city"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        <div class="station-item" *ngFor="let stn of stationsForCity(prov, city)">
+          <div class="tree-node station">
+            <i class="fas fa-building station-icon"></i>
+
+            <!-- View mode -->
+            <ng-container *ngIf="!stn.editing">
+              <span class="node-label">{{ stn.name }}</span>
+              <span class="node-badge dockets">{{ stn.docketCount }} dockets</span>
+              <div class="tree-actions" *ngIf="isAdmin">
+                <button type="button" class="tree-btn" (click)="startEdit(stn)" title="Edit station" aria-label="Edit station"><i class="fas fa-edit" aria-hidden="true"></i></button>
+                <button type="button" class="tree-btn danger" (click)="openDeleteModal(stn)" title="Delete station" aria-label="Delete station"><i class="fas fa-trash" aria-hidden="true"></i></button>
+              </div>
+            </ng-container>
+
+            <!-- Inline edit mode (Complexity 1j) -->
+            <ng-container *ngIf="stn.editing">
+              <input class="inline-input" maxlength="256" [formControl]="$any(editInlineForm.get('name'))" placeholder="Station name">
+              <input class="inline-input sm" maxlength="50" [formControl]="$any(editInlineForm.get('region'))" placeholder="City">
+              <button type="button" class="tree-btn save" (click)="saveEdit(stn)" [disabled]="editInlineForm.invalid || isSaving"><i class="fas fa-check" aria-hidden="true"></i> {{ isSaving ? 'Saving...' : 'Save' }}</button>
+              <button type="button" class="tree-btn" (click)="cancelEdit(stn)" title="Cancel station edit" aria-label="Cancel station edit"><i class="fas fa-times" aria-hidden="true"></i></button>
+            </ng-container>
+          </div>
+        </div>
+        </section>
+        <div class="no-stations" *ngIf="prov.stations.length === 0">No stations in this province.</div>
+      </div>
+    </div>
+    <div class="no-data" *ngIf="tree.length === 0">No station data available.</div>
+  </div>
+</div>
+
+<!-- Add Station Modal -->
+<div class="modal" [class.show]="showAddModal" *ngIf="showAddModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3><i class="fas fa-plus-circle"></i> Add New Station</h3>
+      <button type="button" class="close" (click)="closeAddModal()" aria-label="Close add station dialog">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="addForm">
+        <div class="form-group">
+          <label>Station Name *</label>
+          <input type="text" minlength="3" maxlength="256" formControlName="name" class="form-control" placeholder="e.g. Sandton Police Station">
+        </div>
+        <div class="form-group">
+          <label>Province *</label>
+          <input type="search" list="stationProvinceOptions" autocomplete="off" formControlName="province" class="form-control" placeholder="Search province">
+          <datalist id="stationProvinceOptions"><option *ngFor="let p of provinces" [value]="p"></option></datalist>
+        </div>
+        <div class="form-group">
+          <label>City *</label>
+          <input type="text" minlength="2" maxlength="50" formControlName="region" class="form-control" placeholder="e.g. Pretoria">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeAddModal()">Cancel</button>
+      <button class="btn-primary" (click)="addStation()" [disabled]="addForm.invalid || isSaving">
+        <i class="fas fa-save"></i> {{ isSaving ? 'Adding...' : 'Add Station' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add City Modal -->
+<div class="modal" [class.show]="showAddCityModal" *ngIf="showAddCityModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3><i class="fas fa-city"></i> Add City</h3>
+      <button type="button" class="close" (click)="closeAddCityModal()" aria-label="Close add city dialog">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="cityForm">
+        <div class="form-group">
+          <label for="cityName">City Name *</label>
+          <input id="cityName" type="text" minlength="2" maxlength="50" formControlName="name" class="form-control" placeholder="e.g. Pretoria">
+        </div>
+        <div class="form-group">
+          <label for="cityProvince">Province *</label>
+          <input id="cityProvince" type="search" list="cityProvinceOptions" autocomplete="off" formControlName="province" class="form-control" placeholder="Search province">
+          <datalist id="cityProvinceOptions"><option *ngFor="let p of provinces" [value]="p"></option></datalist>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeAddCityModal()" [disabled]="isSaving">Cancel</button>
+      <button class="btn-primary" (click)="addCity()" [disabled]="cityForm.invalid || isSaving"><i class="fas fa-save"></i> {{ isSaving ? 'Adding...' : 'Add City' }}</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation -->
+<div class="modal" [class.show]="showDeleteModal" *ngIf="showDeleteModal">
+  <div class="modal-content modal-sm">
+    <div class="modal-header"><h3>Remove Station</h3><button type="button" class="close" (click)="closeDeleteModal()" aria-label="Close remove station dialog">&times;</button></div>
+    <div class="modal-body">
+      <p>Remove <strong>{{ selectedStation?.name }}</strong> from the tree?</p>
+      <p class="text-muted">This updates the province–station structure in the database.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeDeleteModal()">Cancel</button>
+      <button class="btn-danger" (click)="confirmDelete()" [disabled]="isSaving"><i class="fas fa-trash"></i> {{ isSaving ? 'Removing...' : 'Remove' }}</button>
+    </div>
+  </div>
+</div>

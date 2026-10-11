@@ -1,0 +1,85 @@
+# ==============================
+# .NET / C#
+# ==============================
+bin/
+obj/
+.vs/
+*.user
+*.userosscache
+*.suo
+*.cache
+*.db
+
+# ==============================
+# ASP.NET Core
+# ==============================
+appsettings.Local.json
+appsettings.*.local.json
+secrets.json
+*.pfx
+*.pem
+*.key
+
+# Runtime data must never be committed
+**/wwwroot/backups/
+**/wwwroot/uploads/
+**/BackupStorage/
+*.bak
+*.zip
+
+# ==============================
+# Angular
+# ==============================
+node_modules/
+.angular/
+dist/
+coverage/
+tmp/
+temp/
+*.log
+*.err
+*.out
+test-results*.json
+output/
+artifacts/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ==============================
+# IDE
+# ==============================
+.vscode/
+.idea/
+.codex/
+.agents/
+.verify/
+.verify-*/
+.tmp/
+*.swp
+*.swo
+*~
+
+# ==============================
+# OS generated files
+# ==============================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Local environment files (commit examples only)
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Temporary document and browser-review artifacts
+*_tmp_*
+tmp_*
+ui-review-*/
+docx_extracted_text.txt

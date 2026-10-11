@@ -1,0 +1,20 @@
+.log-page { width: 100%; max-width: 1440px; min-width: 0; margin: 0 auto; padding: 24px; }
+.log-table-wrap { width: 100%; overflow-x: auto; border-radius: 10px; }
+.log-table-wrap .data-table { min-width: 820px; }
+pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 420px; font-size: 12px; }
+
+.error-state {
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid #b42318;
+  border-radius: 6px;
+  background: #fff4f2;
+  color: #7a271a;
+}
+
+.error-state p { margin: 0 0 12px; }
+.error-state button { cursor: pointer; }
+
+@media (max-width: 767px) {
+  .log-page { padding: 16px; }
+}

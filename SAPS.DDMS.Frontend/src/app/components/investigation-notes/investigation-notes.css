@@ -1,0 +1,367 @@
+/* src/app/components/investigation-notes/investigation-notes.css */
+.investigation-notes {
+    padding: 24px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.page-header h2 {
+    margin: 0 0 8px 0;
+    color: #001F3F;
+}
+
+.page-header p {
+    margin: 0;
+    color: #666;
+}
+
+/* Timeline Styles */
+.notes-timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.notes-timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #ddd;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    top: 0;
+    width: 40px;
+    height: 40px;
+    background: #001F3F;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    z-index: 1;
+}
+
+.timeline-content {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-left: 10px;
+}
+
+.note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.note-author {
+    font-weight: 600;
+    color: #001F3F;
+}
+
+.note-author i, .note-date i {
+    margin-right: 6px;
+}
+
+.note-date {
+    font-size: 12px;
+    color: #999;
+}
+
+.note-body p {
+    margin: 0;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.note-attachments {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #eee;
+}
+
+.note-attachments strong {
+    font-size: 12px;
+    color: #666;
+}
+
+.attachment-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.attachment-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: #f0f0f0;
+    border-radius: 16px;
+    text-decoration: none;
+    font-size: 12px;
+    color: #333;
+}
+
+.attachment-link:hover {
+    background: #e0e0e0;
+}
+
+.note-actions {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 8px;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    color: #001F3F;
+}
+
+.btn-icon:hover {
+    background: #f0f0f0;
+}
+
+.no-notes {
+    text-align: center;
+    padding: 60px;
+    background: white;
+    border-radius: 12px;
+}
+
+.no-notes i {
+    font-size: 48px;
+    color: #999;
+    margin-bottom: 16px;
+}
+
+.no-notes p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* Version Modal Styles */
+.version-list {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.version-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.version-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+.version-reason {
+    background: #fff3e0;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    font-size: 13px;
+}
+
+.version-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    font-size: 13px;
+}
+
+.version-before p,
+.version-after p {
+    background: white;
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 8px;
+    white-space: pre-wrap;
+}
+
+.version-before p {
+    border-left: 3px solid #dc3545;
+}
+
+.version-after p {
+    border-left: 3px solid #28a745;
+}
+
+.loading-spinner {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.btn-primary {
+    background: #001F3F;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 700px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.modal-large {
+    max-width: 900px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    padding: 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-group textarea,
+.form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.form-group textarea:focus,
+.form-group input:focus {
+    outline: none;
+    border-color: #001F3F;
+}
+
+.form-group small {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+/* ── Animation & UX fixes ────────────────────────────────────────────── */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.timeline-item {
+    animation: fadeUp 0.35s ease both;
+}
+
+.timeline-item:nth-child(1) { animation-delay: .05s; }
+.timeline-item:nth-child(2) { animation-delay: .10s; }
+.timeline-item:nth-child(3) { animation-delay: .15s; }
+.timeline-item:nth-child(4) { animation-delay: .20s; }
+
+.note-card {
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.note-card:hover {
+    box-shadow: 0 4px 14px rgba(0,31,63,.14);
+    transform: translateY(-2px);
+}
+
+/* Archive button styling */
+.btn-icon.archive { color: #B8620A; }
+.btn-icon.archive:hover { background: rgba(184,98,10,.1); }
+
+/* Modal improvements */
+.modal-content .form-control { width: 100%; padding: 8px 12px; border: 1px solid #D8DEE6; border-radius: 4px; font-size: 13px; font-family: inherit; }
+.modal-content .form-control:focus { outline: none; border-color: #0074D9; box-shadow: 0 0 0 3px rgba(0,116,217,.12); }
+.field-help { font-size: 11px; color: #8FA0B4; margin-top: 3px; display: block; }

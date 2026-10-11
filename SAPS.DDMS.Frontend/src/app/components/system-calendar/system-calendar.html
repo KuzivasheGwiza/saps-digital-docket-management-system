@@ -1,0 +1,85 @@
+<main class="system-calendar-page">
+  <header class="page-header">
+    <div>
+      <h1>System Calendar</h1>
+      <p>Plan system maintenance, backups, security reviews and administrative reminders. No docket information appears here.</p>
+    </div>
+    <button type="button" class="primary-button" (click)="openCreate()">
+      <i class="fas fa-plus" aria-hidden="true"></i> Add event
+    </button>
+  </header>
+
+  <section class="calendar-card" aria-label="System administration calendar">
+    <div class="calendar-toolbar">
+      <h2>{{ monthLabel }}</h2>
+      <div class="month-actions">
+        <button type="button" (click)="previousMonth()" aria-label="Previous month"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
+        <button type="button" (click)="today()">Today</button>
+        <button type="button" (click)="nextMonth()" aria-label="Next month"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
+      </div>
+    </div>
+
+    <div class="calendar-grid">
+      <div class="weekday" *ngFor="let weekday of weekdays">{{ weekday }}</div>
+      <div class="day-cell" *ngFor="let day of days" [class.muted]="!day.inMonth">
+        <button type="button" class="day-number" (click)="openCreate(day.date)" [attr.aria-label]="'Add event on ' + (day.date | date:'longDate')">{{ day.date.getDate() }}</button>
+        <article class="event" *ngFor="let event of day.events" [attr.data-category]="event.category">
+          <button type="button" class="event-main" (click)="openEdit(event)" [title]="event.description || event.title">
+            <strong>{{ event.title }}</strong>
+            <span>{{ event.category }}</span>
+          </button>
+          <button type="button" class="delete-event" (click)="requestDelete(event)" [attr.aria-label]="'Delete ' + event.title"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <div class="modal-backdrop" *ngIf="showEditor" (click)="closeEditor()">
+    <section class="event-dialog" role="dialog" aria-modal="true" aria-labelledby="event-dialog-title" (click)="$event.stopPropagation()">
+      <header>
+        <div>
+          <h2 id="event-dialog-title">{{ editingId ? 'Edit system event' : 'Add system event' }}</h2>
+          <p>Administrative reminder only; this is not linked to a docket.</p>
+        </div>
+        <button type="button" class="close-button" (click)="closeEditor()" aria-label="Close"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+      </header>
+      <form (ngSubmit)="saveEvent()" #eventForm="ngForm">
+        <label>Event title <span aria-hidden="true">*</span>
+          <input name="title" [(ngModel)]="form.title" required maxlength="100" placeholder="e.g. Monthly access review">
+        </label>
+        <div class="form-row">
+          <label>Date <span aria-hidden="true">*</span>
+            <input type="date" name="date" [(ngModel)]="form.date" required>
+          </label>
+          <label>Category
+            <select name="category" [(ngModel)]="form.category">
+              <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+            </select>
+          </label>
+        </div>
+        <label>Description
+          <textarea name="description" [(ngModel)]="form.description" maxlength="500" rows="4" placeholder="Add instructions or context for this reminder"></textarea>
+        </label>
+        <footer>
+          <button type="button" class="secondary-button" (click)="closeEditor()">Cancel</button>
+          <button type="submit" class="primary-button" [disabled]="eventForm.invalid">{{ editingId ? 'Save changes' : 'Add event' }}</button>
+        </footer>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="pendingDelete" (click)="pendingDelete = null">
+    <section class="event-dialog confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="delete-event-title" (click)="$event.stopPropagation()">
+      <header>
+        <div>
+          <h2 id="delete-event-title">Remove calendar event?</h2>
+          <p>“{{ pendingDelete.title }}” will be removed from the System Calendar.</p>
+        </div>
+      </header>
+      <footer>
+        <button type="button" class="secondary-button" (click)="pendingDelete = null">Cancel</button>
+        <button type="button" class="danger-button" (click)="confirmDelete()">Remove event</button>
+      </footer>
+    </section>
+  </div>
+</main>

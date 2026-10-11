@@ -1,0 +1,360 @@
+<!-- src/app/components/user-management/user-management.html -->
+<div class="user-management">
+    <div class="page-header">
+        <h2>User Management</h2>
+        <button class="btn-primary" (click)="openCreateModal()" *ngIf="isSystemAdmin">
+            <i class="fas fa-plus"></i> Create User
+        </button>
+    </div>
+
+    <div class="activation-confirmation" *ngIf="activationLink" role="status">
+        <i class="fas fa-link" aria-hidden="true"></i>
+        <div>
+            <strong>Activation link ready</strong>
+            <p>The email service is unavailable, so give this secure link directly to the new user.</p>
+            <input type="text" [value]="activationLink" readonly aria-label="New user activation link">
+        </div>
+        <button type="button" class="btn-secondary" (click)="copyActivationLink()">
+            <i class="fas fa-copy" aria-hidden="true"></i> Copy link
+        </button>
+        <button type="button" class="btn-icon" (click)="clearActivationLink()" title="Dismiss activation link" aria-label="Dismiss activation link">
+            <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
+    </div>
+    
+    <!-- Error Message -->
+    <div class="error-container" *ngIf="error && !isLoading">
+        <div class="error-message">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>{{ error }}</p>
+            <button class="btn-secondary" (click)="retry()">Retry</button>
+        </div>
+    </div>
+    
+    <div class="tabs" *ngIf="!error">
+        <button *ngFor="let tab of tabs" 
+                [class.active]="selectedTab === tab"
+                (click)="onTabChange(tab)">
+            {{ tab }}
+        </button>
+    </div>
+    
+    <div class="search-bar" *ngIf="!error">
+        <i class="fas fa-search" aria-hidden="true"></i>
+        <input type="text" 
+               placeholder="Search users by name or personnel number..."
+               aria-label="Search users"
+               [(ngModel)]="searchTerm"
+               (input)="onSearch()">
+    </div>
+    
+    <div class="users-table" *ngIf="!isLoading && !error">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Personnel Number</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th class="actions-column">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let user of filteredUsers">
+                    <td data-label="First name">{{ user.firstName }}</td>
+                    <td data-label="Last name">{{ user.lastName }}</td>
+                    <td data-label="Personnel number">{{ user.personnelNumber }}</td>
+                    <td data-label="Category">{{ user.roleName }}</td>
+                    <td data-label="Status">
+                        <span class="status-badge" [ngClass]="getStatusBadgeClass(user)">
+                            {{ getStatusText(user) }}
+                        </span>
+                    </td>
+                    <td class="actions-cell" data-label="Actions">
+                        <button type="button" class="btn-icon" (click)="openEditModal(user)" title="Edit user" aria-label="Edit user">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" class="btn-icon" (click)="openDetailsModal(user)" title="View user" aria-label="View user details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button type="button" class="btn-icon" (click)="resendActivation(user)" *ngIf="!user.isActivated" title="Resend activation email" aria-label="Resend activation email">
+                            <i class="fas fa-envelope"></i>
+                        </button>
+                        <button type="button" class="btn-icon" (click)="performUserAction(user, 'suspend')" *ngIf="user.isActive && user.isActivated" title="Suspend user" aria-label="Suspend user">
+                            <i class="fas fa-pause-circle"></i>
+                        </button>
+                        <button type="button" class="btn-icon" (click)="performUserAction(user, 'reactivate')" *ngIf="!user.isActive && user.accountStatus !== 'Deactivated'" title="Reactivate user" aria-label="Reactivate user">
+                            <i class="fas fa-play-circle"></i>
+                        </button>
+                        <button type="button" class="btn-icon" (click)="performUserAction(user, 'deactivate')" *ngIf="user.accountStatus !== 'Deactivated'" title="Deactivate user" aria-label="Deactivate user">
+                            <i class="fas fa-user-slash"></i>
+                        </button>
+                        <button type="button" class="btn-icon" (click)="performUserAction(user, 'unlock')" *ngIf="user.isLocked" title="Unlock user" aria-label="Unlock user">
+                            <i class="fas fa-unlock"></i>
+                        </button>
+                        <button type="button" class="btn-icon" (click)="openRoleHistory(user)" title="Role history" aria-label="View user role history">
+                            <i class="fas fa-history"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr *ngIf="filteredUsers.length === 0">
+                    <td colspan="6" class="no-data">No user accounts found.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="loading-spinner" *ngIf="isLoading">
+        <i class="fas fa-spinner fa-spin"></i> Loading...
+    </div>
+</div>
+
+<!-- User Details Modal -->
+<div class="modal" [class.show]="showDetailsModal" *ngIf="showDetailsModal && selectedUser">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>User Details</h3>
+            <button type="button" class="close" (click)="closeDetailsModal()" aria-label="Close user details dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="details-grid">
+                <div><strong>Full Name:</strong> {{ selectedUser.fullName || (selectedUser.firstName + ' ' + selectedUser.lastName) }}</div>
+                <div><strong>Personnel Number:</strong> {{ selectedUser.personnelNumber }}</div>
+                <div><strong>Rank:</strong> {{ selectedUser.rank }}</div>
+                <div><strong>Station:</strong> {{ selectedUser.stationName }}</div>
+                <div><strong>Email:</strong> {{ selectedUser.emailAddress }}</div>
+                <div><strong>Phone:</strong> {{ selectedUser.phoneNumber || '-' }}</div>
+                <div><strong>Role:</strong> {{ selectedUser.roleName }}</div>
+                <div><strong>Status:</strong> <span class="status-badge" [ngClass]="getStatusBadgeClass(selectedUser)">{{ getStatusText(selectedUser) }}</span></div>
+                <div><strong>Created:</strong> {{ selectedUser.dateCreated | date:'yyyy-MM-dd HH:mm' }}</div>
+                <div><strong>Last Login:</strong> {{ selectedUser.lastLoginDate ? (selectedUser.lastLoginDate | date:'yyyy-MM-dd HH:mm') : '-' }}</div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" (click)="closeDetailsModal()">Back to User Management</button>
+            <button class="btn-primary" (click)="resendActivation(selectedUser)" *ngIf="!selectedUser.isActivated">
+                Resend Activation
+            </button>
+            <button class="btn-secondary" (click)="openRoleHistory(selectedUser)">Role History</button>
+        </div>
+    </div>
+</div>
+
+<!-- Role History Modal -->
+<div class="modal" [class.show]="showRoleHistoryModal" *ngIf="showRoleHistoryModal && selectedUser">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Role History</h3>
+            <button type="button" class="close" (click)="closeRoleHistoryModal()" aria-label="Close role history dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p><strong>User:</strong> {{ selectedUser.firstName }} {{ selectedUser.lastName }}</p>
+            <table class="data-table" *ngIf="roleHistory.length">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let item of roleHistory">
+                        <td>{{ item.changedAt | date:'yyyy-MM-dd HH:mm' }}</td>
+                        <td>{{ item.oldRoleName || item.oldRoleID }}</td>
+                        <td>{{ item.newRoleName || item.newRoleID }}</td>
+                        <td>{{ item.reason || '-' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="no-data" *ngIf="!roleHistory.length">No role changes recorded.</div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" (click)="closeRoleHistoryModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Create User Modal -->
+<div class="modal" [class.show]="showCreateModal" *ngIf="showCreateModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Create New User</h3>
+            <button type="button" class="close" (click)="closeCreateModal()" aria-label="Close create user dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form [formGroup]="createForm" (ngSubmit)="createUser()">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="createFirstName">First Name *</label>
+                        <input id="createFirstName" type="text" maxlength="50" formControlName="firstName" placeholder="First name" title="First Name"
+                               [class.is-invalid]="createForm.get('firstName')?.invalid && createForm.get('firstName')?.touched">
+                        <div class="invalid-feedback" *ngIf="createForm.get('firstName')?.invalid && createForm.get('firstName')?.touched">
+                            First name is required (2-50 characters)
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="createLastName">Last Name *</label>
+                        <input id="createLastName" type="text" maxlength="50" formControlName="lastName" placeholder="Last name" title="Last Name"
+                               [class.is-invalid]="createForm.get('lastName')?.invalid && createForm.get('lastName')?.touched">
+                        <div class="invalid-feedback" *ngIf="createForm.get('lastName')?.invalid && createForm.get('lastName')?.touched">
+                            Last name is required (2-50 characters)
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Personnel Number</label>
+                        <div class="generated-field"><i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> Generated automatically after the user is created</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="createRank">Rank *</label>
+                        <input id="createRank" type="text" maxlength="50" formControlName="rank" placeholder="Rank" title="Rank"
+                               [class.is-invalid]="createForm.get('rank')?.invalid && createForm.get('rank')?.touched">
+                        <div class="invalid-feedback" *ngIf="createForm.get('rank')?.invalid && createForm.get('rank')?.touched">
+                            Rank is required
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <div class="station-cascade">
+                            <label for="createProvince">Province *</label>
+                            <input id="createProvince" type="search" list="createProvinceOptions" autocomplete="off" [(ngModel)]="createProvince" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onCreateProvinceChange()" placeholder="Search province">
+                            <datalist id="createProvinceOptions"><option *ngFor="let province of stationProvinces" [value]="province"></option></datalist>
+                            <label for="createCity">City *</label>
+                            <input id="createCity" type="search" list="createCityOptions" autocomplete="off" [(ngModel)]="createCity" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onCreateCityChange()" [disabled]="!createProvince" placeholder="Search city">
+                            <datalist id="createCityOptions"><option *ngFor="let city of createCities" [value]="city"></option></datalist>
+                            <label for="createStationID">Station *</label>
+                            <input id="createStationID" type="search" list="createStationOptions" autocomplete="off"
+                                   [value]="createStationSearch" (input)="onCreateStationSearch($any($event.target).value)"
+                                   [disabled]="!createCity" placeholder="Search station name"
+                                   [class.is-invalid]="createForm.get('stationID')?.invalid && createForm.get('stationID')?.touched">
+                            <datalist id="createStationOptions"><option *ngFor="let station of createStations" [value]="station.name"></option></datalist>
+                        </div>
+                        <div class="invalid-feedback" *ngIf="createForm.get('stationID')?.invalid && createForm.get('stationID')?.touched">
+                            Select a province, city and valid station from the searchable list.
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="createRoleID">Role *</label>
+                        <input id="createRoleID" type="search" list="createRoleOptions" autocomplete="off"
+                               [value]="createRoleSearch" (input)="onCreateRoleSearch($any($event.target).value)" title="Search role" placeholder="Search role"
+                               [class.is-invalid]="createForm.get('roleID')?.invalid && createForm.get('roleID')?.touched">
+                        <datalist id="createRoleOptions"><option *ngFor="let role of roles" [value]="role.name"></option></datalist>
+                        <div class="invalid-feedback" *ngIf="createForm.get('roleID')?.invalid && createForm.get('roleID')?.touched">
+                            Role is required
+                        </div>
+                        <div class="field-help" *ngIf="!roles.length">
+                            Loading available roles... please wait.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="createEmailAddress">Email Address *</label>
+                    <input id="createEmailAddress" type="email" maxlength="50" formControlName="emailAddress" placeholder="example@example.com" title="Email Address"
+                           [class.is-invalid]="createForm.get('emailAddress')?.invalid && createForm.get('emailAddress')?.touched">
+                    <div class="invalid-feedback" *ngIf="createForm.get('emailAddress')?.invalid && createForm.get('emailAddress')?.touched">
+                        Valid email is required
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="createPhoneNumber">Phone Number</label>
+                    <input id="createPhoneNumber" type="tel" maxlength="12" inputmode="tel" formControlName="phoneNumber" placeholder="0712345678 or +27712345678" title="Phone Number"
+                           [class.is-invalid]="createForm.get('phoneNumber')?.invalid && createForm.get('phoneNumber')?.touched">
+                    <div class="invalid-feedback" *ngIf="createForm.get('phoneNumber')?.invalid && createForm.get('phoneNumber')?.touched">
+                        Enter 10 digits starting with 0, or +27 followed by 9 digits. Spaces and letters are not allowed.
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" (click)="closeCreateModal()">Cancel</button>
+                    <button type="submit" class="btn-primary" [disabled]="createForm.invalid || isLoading">
+                        <i class="fas" [class.fa-spinner]="isLoading" [class.fa-spin]="isLoading" [class.fa-user-plus]="!isLoading" aria-hidden="true"></i>
+                        {{ isLoading ? 'Creating user...' : 'Create User' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal" [class.show]="showEditModal" *ngIf="showEditModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Edit User</h3>
+            <button type="button" class="close" (click)="closeEditModal()" aria-label="Close edit user dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form [formGroup]="editForm" (ngSubmit)="updateUser()">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editFirstName">First Name *</label>
+                        <input id="editFirstName" type="text" maxlength="50" formControlName="firstName" placeholder="First name" title="First Name">
+                    </div>
+                    <div class="form-group">
+                        <label for="editLastName">Last Name *</label>
+                        <input id="editLastName" type="text" maxlength="50" formControlName="lastName" placeholder="Last name" title="Last Name">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editRank">Rank *</label>
+                        <input id="editRank" type="text" maxlength="50" formControlName="rank" placeholder="Rank" title="Rank">
+                    </div>
+                    <div class="form-group">
+                        <label for="editStationID">Station *</label>
+                        <select id="editStationID" formControlName="stationID" title="Station">
+                            <option *ngFor="let station of stations" [ngValue]="station.id">
+                                {{ station.name }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editRoleID">Role *</label>
+                        <select id="editRoleID" formControlName="roleID" title="Role">
+                            <option [ngValue]="null" disabled>Select Role</option>
+                            <option *ngFor="let role of roles" [ngValue]="role.id">
+                                {{ role.name }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEmailAddress">Email Address *</label>
+                        <input id="editEmailAddress" type="email" maxlength="50" formControlName="emailAddress" placeholder="example@example.com" title="Email Address">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editPhoneNumber">Phone Number</label>
+                    <input id="editPhoneNumber" type="tel" maxlength="12" inputmode="tel" formControlName="phoneNumber" placeholder="0712345678 or +27712345678" title="Phone Number"
+                           [class.is-invalid]="editForm.get('phoneNumber')?.invalid && editForm.get('phoneNumber')?.touched">
+                    <div class="invalid-feedback" *ngIf="editForm.get('phoneNumber')?.invalid && editForm.get('phoneNumber')?.touched">
+                        Enter 10 digits starting with 0, or +27 followed by 9 digits. Spaces and letters are not allowed.
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editReason">Reason</label>
+                    <textarea id="editReason" formControlName="reason" minlength="3" maxlength="500" rows="2" placeholder="Reason for account or role update" title="Reason"></textarea>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" (click)="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn-primary" [disabled]="editForm.invalid || isLoading">
+                        {{ isLoading ? 'Updating...' : 'Update User' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

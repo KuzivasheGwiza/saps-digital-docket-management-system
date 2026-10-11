@@ -1,0 +1,214 @@
+<main class="exchange-page" aria-labelledby="exchange-title">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">System administration</p>
+      <h1 id="exchange-title">Data Exchange</h1>
+      <p>Export decision-ready Excel, Word, XML or JSON files and safely maintain approved lookup values.</p>
+    </div>
+    <span class="security-badge"><i class="fas fa-shield-halved" aria-hidden="true"></i> Permission controlled</span>
+  </header>
+
+  <section class="access-card" *ngIf="!isAuthorised" role="alert">
+    <i class="fas fa-lock" aria-hidden="true"></i>
+    <div>
+      <h2>Restricted data exchange</h2>
+      <p>Your current access profile does not include the Data Exchange permission.</p>
+    </div>
+  </section>
+
+  <div class="exchange-grid" *ngIf="isAuthorised">
+    <section class="panel export-panel" aria-labelledby="export-title">
+      <div class="panel-heading">
+        <span class="panel-icon"><i class="fas fa-file-export" aria-hidden="true"></i></span>
+        <div>
+          <h2 id="export-title">Export operational data</h2>
+          <p>Every workbook includes a Data sheet and a generated-by metadata sheet.</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <label class="field field-wide" for="exchange-dataset">
+          <span>Dataset</span>
+          <select id="exchange-dataset" name="dataset" [(ngModel)]="selectedDataset">
+            <option *ngFor="let option of datasets" [ngValue]="option.key">{{ option.label }}</option>
+          </select>
+          <small>{{ selectedDatasetOption.description }}</small>
+        </label>
+
+        <label class="field" for="exchange-format">
+          <span>File format</span>
+          <select id="exchange-format" name="format" [(ngModel)]="selectedFormat">
+            <option value="xlsx">Excel workbook (.xlsx)</option>
+            <option value="doc">Microsoft Word document (.doc)</option>
+            <option value="xml">XML data file (.xml)</option>
+            <option value="json">JSON data file (.json)</option>
+          </select>
+        </label>
+
+        <label class="field" for="exchange-station">
+          <span>Station</span>
+          <select id="exchange-station" name="station" [(ngModel)]="stationId">
+            <option [ngValue]="null">All stations</option>
+            <option *ngFor="let station of stations" [ngValue]="station.id">
+              {{ station.name }}<ng-container *ngIf="station.province"> — {{ station.province }}</ng-container>
+            </option>
+          </select>
+        </label>
+
+        <label class="field" for="exchange-from">
+          <span>From date</span>
+          <input id="exchange-from" name="fromDate" type="date" [(ngModel)]="fromDate" [max]="toDate || null">
+        </label>
+
+        <label class="field" for="exchange-to">
+          <span>To date</span>
+          <input id="exchange-to" name="toDate" type="date" [(ngModel)]="toDate" [min]="fromDate || null">
+        </label>
+
+        <label class="field" for="exchange-status" *ngIf="selectedDataset === 'dockets'">
+          <span>Docket status</span>
+          <select id="exchange-status" name="status" [(ngModel)]="status">
+            <option value="">Any status</option>
+            <option *ngFor="let item of statuses" [value]="item">{{ item }}</option>
+          </select>
+        </label>
+
+        <label class="field" for="exchange-role" *ngIf="selectedDataset === 'users'">
+          <span>Role</span>
+          <select id="exchange-role" name="role" [(ngModel)]="roleId">
+            <option [ngValue]="null">All roles</option>
+            <option *ngFor="let role of roles" [ngValue]="role.id">{{ role.name }}</option>
+          </select>
+        </label>
+
+        <label class="field" for="exchange-active" *ngIf="selectedDataset === 'users'">
+          <span>Account activity</span>
+          <select id="exchange-active" name="activeFilter" [(ngModel)]="activeFilter">
+            <option value="">Active and inactive</option>
+            <option value="true">Active only</option>
+            <option value="false">Inactive only</option>
+          </select>
+        </label>
+
+        <label class="field" for="exchange-docket-id" *ngIf="selectedDataset === 'evidence'">
+          <span>Docket ID</span>
+          <input id="exchange-docket-id" name="docketId" type="number" min="1" step="1" [(ngModel)]="docketId" placeholder="All dockets">
+        </label>
+
+        <label class="field" for="exchange-user-id" *ngIf="selectedDataset === 'audit'">
+          <span>User ID</span>
+          <input id="exchange-user-id" name="userId" type="number" min="1" step="1" [(ngModel)]="userId" placeholder="All users">
+        </label>
+
+        <label class="field" for="exchange-action" *ngIf="selectedDataset === 'audit'">
+          <span>Exact action type</span>
+          <input id="exchange-action" name="actionType" type="text" maxlength="50" [(ngModel)]="actionType" placeholder="e.g. UPDATE_DOCKET">
+        </label>
+      </div>
+
+      <p class="inline-message warning" *ngIf="lookupLoadWarning" role="status">
+        <i class="fas fa-triangle-exclamation" aria-hidden="true"></i> {{ lookupLoadWarning }}
+      </p>
+      <p class="inline-message error" *ngIf="hasInvalidDateRange" role="alert">
+        <i class="fas fa-circle-exclamation" aria-hidden="true"></i> The From date must be on or before the To date.
+      </p>
+      <p class="inline-message error" *ngIf="exportError" role="alert">{{ exportError }}</p>
+      <p class="inline-message success" *ngIf="exportSuccess" role="status">{{ exportSuccess }}</p>
+
+      <div class="panel-actions">
+        <p><i class="fas fa-circle-info" aria-hidden="true"></i> Exports are capped at 10,000 rows; refine filters if needed.</p>
+        <button type="button" class="btn-primary" (click)="exportFile()" [disabled]="isExporting || hasInvalidDateRange">
+          <i [class]="isExporting ? 'fas fa-spinner fa-spin' : selectedFormat === 'xlsx' ? 'fas fa-file-excel' : 'fas fa-file-code'" aria-hidden="true"></i>
+          {{ isExporting ? 'Preparing file...' : 'Export ' + selectedFormat.toUpperCase() }}
+        </button>
+      </div>
+    </section>
+
+    <section class="panel import-panel" aria-labelledby="import-title">
+      <div class="panel-heading">
+        <span class="panel-icon"><i class="fas fa-file-import" aria-hidden="true"></i></span>
+        <div>
+          <h2 id="import-title">Import lookup JSON or XML</h2>
+          <p>Preview-only first. Imports can create or update whitelisted lookup values and never delete records.</p>
+        </div>
+      </div>
+
+      <div class="template-row">
+        <label class="field" for="template-type">
+          <span>Template type</span>
+          <select id="template-type" name="templateLookupType" [(ngModel)]="templateLookupType">
+            <option *ngFor="let type of lookupTypes" [ngValue]="type.key">{{ type.label }}</option>
+          </select>
+        </label>
+        <label class="field" for="template-format">
+          <span>Template format</span>
+          <select id="template-format" name="templateImportFormat" [(ngModel)]="templateImportFormat">
+            <option value="json">JSON (.json)</option>
+            <option value="xml">XML (.xml)</option>
+          </select>
+        </label>
+        <button type="button" class="btn-secondary" (click)="downloadTemplate()">
+          <i class="fas fa-download" aria-hidden="true"></i> Download template
+        </button>
+      </div>
+
+      <label class="file-drop" for="lookup-json-file" [class.has-file]="!!importDocument">
+        <input id="lookup-json-file" type="file" accept="application/json,application/xml,text/xml,.json,.xml" (change)="selectImportFile($event)">
+        <span class="file-icon"><i class="fas fa-cloud-arrow-up" aria-hidden="true"></i></span>
+        <strong>{{ selectedFileName || 'Choose a lookup JSON or XML file' }}</strong>
+        <small>{{ importDocument ? importDocument.records.length + ' records ready to preview' : 'Version 1 JSON/XML, maximum 1 MB and 500 records' }}</small>
+      </label>
+
+      <button type="button" class="btn-primary preview-button" (click)="previewImport()" [disabled]="!importDocument || isReadingFile || isPreviewing">
+        <i [class]="isPreviewing ? 'fas fa-spinner fa-spin' : 'fas fa-magnifying-glass'" aria-hidden="true"></i>
+        {{ isPreviewing ? 'Checking file...' : 'Preview changes' }}
+      </button>
+
+      <p class="inline-message error" *ngIf="importError" role="alert">{{ importError }}</p>
+      <p class="inline-message success" *ngIf="importResult" role="status">{{ importResult.message }}</p>
+
+      <div class="preview" *ngIf="importPreview" aria-live="polite">
+        <div class="preview-heading">
+          <div>
+            <h3>Import preview</h3>
+            <p>{{ importPreview.lookupType }} · {{ importPreview.totalRecords }} records</p>
+          </div>
+          <code title="Content hash">{{ importPreview.contentHash | slice:0:12 }}…</code>
+        </div>
+
+        <div class="preview-stats">
+          <div><strong>{{ importPreview.createCount }}</strong><span>Create</span></div>
+          <div><strong>{{ importPreview.updateCount }}</strong><span>Update</span></div>
+          <div><strong>{{ importPreview.unchangedCount }}</strong><span>Unchanged</span></div>
+        </div>
+
+        <ul class="validation-list" *ngIf="importPreview.errors.length" role="alert">
+          <li *ngFor="let error of importPreview.errors">{{ error }}</li>
+        </ul>
+
+        <div class="preview-table-wrap" tabindex="0" aria-label="Lookup import changes">
+          <table>
+            <thead><tr><th>Name</th><th>Action</th><th>Details</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let row of importPreview.rows">
+                <td>{{ row.name }}</td>
+                <td><span class="action-badge" [ngClass]="actionClass(row.action)">{{ row.action }}</span></td>
+                <td>{{ row.details }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <label class="confirm-check" *ngIf="importPreview.canApply">
+          <input type="checkbox" name="applyConfirmed" [(ngModel)]="applyConfirmed">
+          <span>I reviewed these changes and confirm that the approved lookup values may be applied.</span>
+        </label>
+
+        <button type="button" class="btn-danger apply-button" *ngIf="importPreview.canApply" (click)="applyImport()" [disabled]="!canApplyImport">
+          <i [class]="isApplying ? 'fas fa-spinner fa-spin' : 'fas fa-check-double'" aria-hidden="true"></i>
+          {{ isApplying ? 'Applying changes...' : 'Apply reviewed changes' }}
+        </button>
+      </div>
+    </section>
+  </div>
+</main>

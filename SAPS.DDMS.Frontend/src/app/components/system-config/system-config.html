@@ -1,0 +1,137 @@
+<!-- system-config.html — Complexity 1n (configurable timers) + 4b (business rules) -->
+<div class="sysconfig-page">
+  <div class="page-header">
+    <h2><i class="fas fa-cog"></i> System Configuration</h2>
+    <p class="subtitle">Adjust system timers and business rules. Changes take effect immediately.</p>
+  </div>
+
+  <div class="loading-spinner" *ngIf="isLoading">
+    <i class="fas fa-spinner fa-spin"></i> Loading settings...
+  </div>
+
+  <div class="config-sections" *ngIf="!isLoading">
+
+    <!-- Complexity 1n — Timer settings (adjustable from front end) -->
+    <div class="config-card">
+      <div class="config-card-header timer">
+        <i class="fas fa-clock"></i> Session & Timer Settings
+        <span class="badge-note">Adjustable from front end (Complexity 1n)</span>
+      </div>
+      <div class="config-table-wrap">
+        <table class="config-table">
+          <thead><tr><th>Setting</th><th>Current Value</th><th>Unit</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let t of timerSettings">
+              <td data-label="Setting">
+                <strong>{{ t.label }}</strong>
+                <div class="setting-key">{{ t.key }}</div>
+              </td>
+              <td data-label="Current value">
+                <span *ngIf="editingKey !== t.key" class="setting-value">{{ getSettingValue(t.key) }}</span>
+                <input *ngIf="editingKey === t.key" type="number"
+                       [formControl]="$any(editForm.get('settingValue'))"
+                       [min]="t.min" [max]="t.max"
+                       class="edit-input"
+                       [placeholder]="t.min + ' – ' + t.max">
+              </td>
+              <td data-label="Unit"><span class="unit-badge">{{ t.unit }}</span></td>
+              <td data-label="Action">
+                <div class="actions-cell">
+                  <button *ngIf="editingKey !== t.key" class="btn-edit" (click)="startEdit(t.key)">
+                    <i class="fas fa-edit"></i> Edit
+                  </button>
+                  <button *ngIf="editingKey === t.key" class="btn-save" (click)="saveSetting(t.key)">
+                    <i class="fas fa-save"></i> Save
+                  </button>
+                  <button *ngIf="editingKey === t.key" class="btn-cancel" (click)="cancelEdit()">Cancel</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Complexity 4b — Business rule settings -->
+    <div class="config-card">
+      <div class="config-card-header rules">
+        <i class="fas fa-balance-scale"></i> Business Rule Settings
+        <span class="badge-note">Maintained in DB, applied in code (Complexity 4b)</span>
+      </div>
+      <div class="config-table-wrap">
+        <table class="config-table">
+          <thead><tr><th>Business Rule</th><th>Current Value</th><th>Unit</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let b of businessRuleSettings">
+              <td data-label="Business rule">
+                <strong>{{ b.label }}</strong>
+                <div class="setting-key">{{ b.key }}</div>
+              </td>
+              <td data-label="Current value">
+                <span *ngIf="editingKey !== b.key" class="setting-value">{{ getSettingValue(b.key) }}</span>
+                <input *ngIf="editingKey === b.key" type="number"
+                       [formControl]="$any(editForm.get('settingValue'))"
+                       [min]="b.min" [max]="b.max"
+                       class="edit-input">
+              </td>
+              <td data-label="Unit"><span class="unit-badge">{{ b.unit }}</span></td>
+              <td data-label="Action">
+                <div class="actions-cell">
+                  <button *ngIf="editingKey !== b.key" class="btn-edit" (click)="startEdit(b.key)">
+                    <i class="fas fa-edit"></i> Edit
+                  </button>
+                  <button *ngIf="editingKey === b.key" class="btn-save" (click)="saveSetting(b.key)">
+                    <i class="fas fa-save"></i> Save
+                  </button>
+                  <button *ngIf="editingKey === b.key" class="btn-cancel" (click)="cancelEdit()">Cancel</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="config-card">
+      <div class="config-card-header security">
+        <i class="fas fa-user-shield"></i> Security Settings
+        <span class="badge-note">OTP two-factor control</span>
+      </div>
+      <div class="config-table-wrap">
+        <table class="config-table">
+          <thead><tr><th>Security Rule</th><th>Current Value</th><th>Value</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let s of securitySettings">
+              <td data-label="Security rule">
+                <strong>{{ s.label }}</strong>
+                <div class="setting-key">{{ s.key }}</div>
+              </td>
+              <td data-label="Current value">
+                <span *ngIf="editingKey !== s.key" class="setting-value">{{ getSettingValue(s.key) }}</span>
+                <select *ngIf="editingKey === s.key"
+                        [formControl]="$any(editForm.get('settingValue'))"
+                        class="edit-input wide">
+                  <option value="true">true</option>
+                  <option value="false">false</option>
+                </select>
+              </td>
+              <td data-label="Value"><span class="unit-badge">{{ s.unit }}</span></td>
+              <td data-label="Action">
+                <div class="actions-cell">
+                  <button *ngIf="editingKey !== s.key" class="btn-edit" (click)="startEdit(s.key)">
+                    <i class="fas fa-edit"></i> Edit
+                  </button>
+                  <button *ngIf="editingKey === s.key" class="btn-save" (click)="saveSetting(s.key)">
+                    <i class="fas fa-save"></i> Save
+                  </button>
+                  <button *ngIf="editingKey === s.key" class="btn-cancel" (click)="cancelEdit()">Cancel</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,84 @@
+<!-- backup.html — Complexity 10a: Backup/Restore from front end -->
+<div class="backup-page">
+  <div class="page-header">
+    <div>
+      <h2><i class="fas fa-database"></i> Backup &amp; Restore</h2>
+      <p class="subtitle">Create full system snapshots and restore the operational dataset from the front end</p>
+    </div>
+    <button class="btn-primary" (click)="createBackup()" [disabled]="isCreating">
+      <i class="fas fa-spinner fa-spin" *ngIf="isCreating"></i>
+      <i class="fas fa-save" *ngIf="!isCreating"></i>
+      {{ isCreating ? 'Creating Backup...' : 'Create Backup Now' }}
+    </button>
+  </div>
+
+  <div class="alert-info">
+    <i class="fas fa-info-circle"></i>
+    Snapshots are stored on the server as ZIP packages that include the operational database tables and uploaded files. Restoring a snapshot replaces the current operational data and clears active sessions for security.
+  </div>
+
+  <div class="loading-spinner" *ngIf="isLoading">
+    <i class="fas fa-spinner fa-spin"></i> Loading backup history...
+  </div>
+
+  <div class="backup-table-wrap" *ngIf="!isLoading">
+    <table class="backup-table" *ngIf="backups.length > 0">
+      <thead>
+        <tr>
+          <th>File Name</th>
+          <th>Created At</th>
+          <th>Created By</th>
+          <th>Size (MB)</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let b of backups">
+          <td><i class="fas fa-file-archive file-icon"></i> {{ b.fileName }}</td>
+          <td>{{ b.createdAt | date:'yyyy-MM-dd HH:mm' }}</td>
+          <td>{{ b.createdBy }}</td>
+          <td>{{ b.sizeMB | number:'1.1-1' }} MB</td>
+          <td>
+            <span class="status-badge">{{ b.status }}</span>
+            <small class="backup-note" *ngIf="b.notes">{{ b.notes }}</small>
+          </td>
+          <td>
+            <button class="btn-sm download-button" (click)="downloadBackup(b)" title="Download backup file" aria-label="Download backup file">
+              <i class="fas fa-download"></i>
+            </button>
+            <button class="btn-sm restore-button" (click)="openRestoreModal(b)" title="Restore this backup package">
+              <i class="fas fa-rotate-left"></i> Restore
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="no-data" *ngIf="backups.length === 0">
+      <i class="fas fa-database"></i>
+      <p>No snapshots found. Click "Create Backup Now" to create the first server-side snapshot.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Restore Confirmation Modal -->
+<div class="modal" [class.show]="showRestoreModal" *ngIf="showRestoreModal">
+  <div class="modal-content modal-sm">
+    <div class="modal-header"><h3><i class="fas fa-rotate-left"></i> Restore Backup</h3><button type="button" class="close" (click)="closeRestoreModal()" aria-label="Close restore backup dialog">&times;</button></div>
+    <div class="modal-body">
+      <p>Restore this snapshot package:</p>
+      <div class="backup-preview">{{ selectedBackup?.fileName }}</div>
+      <div class="alert-info">
+        <i class="fas fa-info-circle"></i>
+        <strong>Warning:</strong> SAPS DDMS will replace the current operational data with the selected snapshot and sign users out afterwards.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeRestoreModal()">Cancel</button>
+      <button class="btn-danger" (click)="confirmRestore()" [disabled]="isRestoring">
+        <i class="fas fa-spinner fa-spin" *ngIf="isRestoring"></i>
+        <span *ngIf="!isRestoring"><i class="fas fa-rotate-left"></i> Restore Now</span>
+      </button>
+    </div>
+  </div>
+</div>

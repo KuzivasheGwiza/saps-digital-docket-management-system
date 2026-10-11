@@ -1,0 +1,49 @@
+<div class="calendar-page">
+  <div class="calendar-header">
+    <div>
+      <h1>Docket Calendar</h1>
+      <p>Docket creation, allocation, and inspection due dates by month.</p>
+    </div>
+    <div class="calendar-actions">
+      <button type="button" (click)="previousMonth()" title="Previous month" aria-label="Previous month">
+        <i class="fas fa-chevron-left" aria-hidden="true"></i>
+      </button>
+      <button type="button" (click)="today()">Today</button>
+      <button type="button" (click)="nextMonth()" title="Next month" aria-label="Next month">
+        <i class="fas fa-chevron-right" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <h2>{{ monthLabel }}</h2>
+  <div class="status" *ngIf="isLoading">Loading calendar...</div>
+  <div class="status error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="status empty" *ngIf="!isLoading && !errorMessage && monthEventCount === 0">
+    <span>No docket creation, allocation, or inspection events fall in {{ monthLabel }}.</span>
+    <button type="button" *ngIf="dockets.length" (click)="showLatestActivity()">Show latest activity</button>
+  </div>
+
+  <div class="calendar-grid" *ngIf="!isLoading && !errorMessage">
+    <div class="weekday" *ngFor="let day of weekdays">{{ day }}</div>
+    <div class="day-cell" *ngFor="let day of days" [class.muted]="!day.inMonth">
+      <div class="day-number">{{ day.date.getDate() }}</div>
+      <a
+        *ngFor="let docket of day.dockets | slice:0:(isDayExpanded(day) ? day.dockets.length : 3)"
+        class="calendar-event"
+        [routerLink]="['/dockets', docket.docketID]"
+        [title]="docket.docketNumber + ' - ' + docket.status">
+        <span>{{ docket.docketNumber }}</span>
+        <small>{{ docket.status }}</small>
+      </a>
+      <button
+        type="button"
+        class="more-events"
+        *ngIf="day.dockets.length > 3"
+        (click)="toggleDay(day)"
+        [attr.aria-expanded]="isDayExpanded(day)"
+        [attr.aria-label]="(isDayExpanded(day) ? 'Show fewer events for ' : 'Show all events for ') + (day.date | date:'longDate')">
+        {{ isDayExpanded(day) ? 'Show fewer' : '+' + (day.dockets.length - 3) + ' more' }}
+      </button>
+    </div>
+  </div>
+</div>

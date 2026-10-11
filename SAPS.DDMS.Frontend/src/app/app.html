@@ -1,0 +1,131 @@
+<nav class="navbar" *ngIf="shouldShowShell()" aria-label="Primary navigation">
+    <div class="nav-container">
+        <a class="nav-brand" routerLink="/dashboard" (click)="closeNavigation()" aria-label="SAPS DDMS dashboard">
+            <img src="/saps-badge.svg" alt="" class="saps-logo" aria-hidden="true">
+            <span class="brand-copy">
+                <strong>SAPS DDMS</strong>
+                <small>Digital Docket Management System</small>
+            </span>
+        </a>
+
+        <button
+            type="button"
+            class="mobile-menu-toggle"
+            (click)="toggleMobileMenu()"
+            [attr.aria-expanded]="isMobileMenuOpen"
+            aria-controls="primary-navigation"
+            aria-label="Toggle navigation menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <div id="primary-navigation" class="nav-content" [class.open]="isMobileMenuOpen">
+            <div class="nav-menu">
+                <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="fas fa-chart-line" aria-hidden="true"></i>Dashboard</a>
+                <a *ngIf="canAccessDockets()" routerLink="/dockets" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="fas fa-folder-open" aria-hidden="true"></i>Dockets</a>
+                <a *ngIf="canAccessPersons()" routerLink="/persons" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="fas fa-users" aria-hidden="true"></i>Persons</a>
+                <a *ngIf="canAccessCalendar()" [routerLink]="getCalendarRoute()" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="fas fa-calendar-days" aria-hidden="true"></i>Calendar</a>
+                <div class="administration-dropdown" *ngIf="canAccessAdministration() || canAccessReports() || canAccessStations()">
+                    <button
+                        type="button"
+                        class="nav-dropdown-toggle"
+                        (click)="toggleAdministration()"
+                        [class.active]="isAdministrationOpen || isAdministrationRoute()"
+                        [attr.aria-expanded]="isAdministrationOpen"
+                        aria-haspopup="menu"
+                        aria-controls="administration-menu">
+                        <span><i class="fas fa-shield-halved" aria-hidden="true"></i>Administration</span><i class="fas fa-chevron-down caret" aria-hidden="true"></i>
+                    </button>
+                    <div id="administration-menu" class="administration-menu" *ngIf="isAdministrationOpen" role="menu">
+                        <a *ngIf="canAccessReports()" routerLink="/reports" routerLinkActive="active" role="menuitem" (click)="closeNavigation()"><i class="fas fa-file-lines" aria-hidden="true"></i>Reports</a>
+                        <a *ngIf="canAccessEvidenceRegister()" routerLink="/evidence-register" routerLinkActive="active" role="menuitem" (click)="closeNavigation()"><i class="fas fa-table-list" aria-hidden="true"></i>Evidence Register</a>
+                        <a *ngIf="canAccessStations()" routerLink="/station-tree" routerLinkActive="active" role="menuitem" (click)="closeNavigation()"><i class="fas fa-building-shield" aria-hidden="true"></i>Stations</a>
+                        <a *ngIf="canManageUsers()" routerLink="/users" routerLinkActive="active" role="menuitem" (click)="closeNavigation()"><i class="fas fa-user-gear" aria-hidden="true"></i>User Management</a>
+                        <a *ngIf="canManageRoles()" routerLink="/roles" routerLinkActive="active" role="menuitem" (click)="closeNavigation()"><i class="fas fa-user-shield" aria-hidden="true"></i>Roles &amp; Permissions</a>
+                        <a *ngIf="canManageConfiguration()" routerLink="/system-config" routerLinkActive="active" role="menuitem" (click)="closeNavigation()"><i class="fas fa-sliders" aria-hidden="true"></i>System Configuration</a>
+                        <a *ngIf="canManageBackup()" routerLink="/backup" routerLinkActive="active" role="menuitem" (click)="closeNavigation()"><i class="fas fa-database" aria-hidden="true"></i>Backup &amp; Restore</a>
+                        <a *ngIf="canViewAudit()" routerLink="/audit-log" routerLinkActive="active" role="menuitem" (click)="closeNavigation()"><i class="fas fa-clipboard-list" aria-hidden="true"></i>Audit Trail</a>
+                        <a *ngIf="canViewAiLog()" routerLink="/ai-log" routerLinkActive="active" role="menuitem" (click)="closeNavigation()"><i class="fas fa-microchip" aria-hidden="true"></i>AI Interaction Log</a>
+                        <a *ngIf="canManageSms()" routerLink="/sms-queue" routerLinkActive="active" role="menuitem" (click)="closeNavigation()"><i class="fas fa-comment-sms" aria-hidden="true"></i>SMS Queue</a>
+                        <a *ngIf="canManageDataExchange()" routerLink="/data-exchange" routerLinkActive="active" role="menuitem" (click)="closeNavigation()"><i class="fas fa-file-export" aria-hidden="true"></i>Data Exchange</a>
+                    </div>
+                </div>
+
+                <a routerLink="/faq-management" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="fas fa-circle-question" aria-hidden="true"></i>FAQs</a>
+                <a [routerLink]="['/help']" [queryParams]="{ topic: getHelpTopic() }" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="fas fa-circle-info" aria-hidden="true"></i>Help</a>
+                <a routerLink="/feedback" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="fas fa-comments" aria-hidden="true"></i>Feedback</a>
+            </div>
+
+            <div class="nav-user">
+                <div class="notification-wrapper">
+                    <button
+                        type="button"
+                        class="notification-btn"
+                        (click)="toggleNotifications()"
+                        [attr.aria-expanded]="isNotificationOpen"
+                        aria-haspopup="dialog"
+                        aria-controls="notification-menu">
+                        <i class="fas fa-bell" aria-hidden="true"></i><span>Alerts</span>
+                        <span class="notification-badge" *ngIf="unreadCount" [attr.aria-label]="unreadCount + ' unread notifications'">{{ unreadCount }}</span>
+                    </button>
+                    <div id="notification-menu" class="notification-menu" *ngIf="isNotificationOpen" role="dialog" aria-label="Notifications">
+                        <div class="menu-heading">Notifications</div>
+                        <button
+                            type="button"
+                            class="notification-item"
+                            *ngFor="let item of notifications"
+                            (click)="markNotificationRead(item)"
+                            [class.unread]="!item.isRead">
+                            <strong>{{ item.title }}</strong>
+                            <span>{{ item.message }}</span>
+                            <small>{{ item.createdAt | date:'yyyy-MM-dd HH:mm' }}</small>
+                        </button>
+                        <div class="notification-empty" *ngIf="notifications.length === 0">No notifications.</div>
+                    </div>
+                </div>
+
+                <div class="user-dropdown">
+                    <button
+                        type="button"
+                        class="user-btn"
+                        (click)="toggleDropdown()"
+                        [attr.aria-expanded]="isDropdownOpen"
+                        aria-haspopup="menu"
+                        aria-controls="user-menu">
+                        <span class="user-avatar" aria-hidden="true">{{ getUserInitials() }}</span>
+                        <span class="user-name">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</span>
+                        <i class="fas fa-chevron-down caret" aria-hidden="true"></i>
+                    </button>
+                    <div id="user-menu" class="dropdown-menu" *ngIf="isDropdownOpen" role="menu">
+                        <div class="dropdown-user-info">
+                            <strong>{{ currentUser?.firstName }} {{ currentUser?.lastName }}</strong>
+                            <span>{{ currentUser?.roleName }}</span>
+                        </div>
+                        <a routerLink="/profile" role="menuitem" (click)="closeNavigation()"><i class="fas fa-id-card" aria-hidden="true"></i>My Profile</a>
+                        <a routerLink="/change-password" role="menuitem" (click)="closeNavigation()"><i class="fas fa-key" aria-hidden="true"></i>Change Password</a>
+                        <a routerLink="/feedback" role="menuitem" (click)="closeNavigation()"><i class="fas fa-message" aria-hidden="true"></i>My Feedback</a>
+                        <button type="button" class="logout-btn" role="menuitem" (click)="logout()"><i class="fas fa-right-from-bracket" aria-hidden="true"></i>Log out</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="breadcrumb-bar" *ngIf="shouldShowShell()">
+    <div class="breadcrumb-container">
+        <nav class="breadcrumb-trail" aria-label="Breadcrumb">
+            <a routerLink="/dashboard">SAPS DDMS</a>
+            <span class="breadcrumb-separator" aria-hidden="true">/</span>
+            <span aria-current="page">{{ getBreadcrumbLabel() }}</span>
+        </nav>
+        <a class="context-help-link" [routerLink]="['/help']" [queryParams]="{ topic: getHelpTopic() }" [attr.aria-label]="'Help for ' + getBreadcrumbLabel()">
+            <i class="fas fa-circle-question" aria-hidden="true"></i>
+            Help for this page
+        </a>
+    </div>
+</div>
+
+<router-outlet></router-outlet>
+<app-dialog></app-dialog>

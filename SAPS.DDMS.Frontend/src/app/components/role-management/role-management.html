@@ -1,0 +1,124 @@
+<main class="roles-page">
+  <header class="roles-header">
+    <div>
+      <span class="eyebrow">Access governance</span>
+      <h1><i class="fas fa-user-shield" aria-hidden="true"></i> Roles &amp; Permissions</h1>
+      <p>Create access profiles and choose exactly which modules each profile can open.</p>
+    </div>
+    <button type="button" class="btn-primary" (click)="startNewRole()">
+      <i class="fas fa-plus" aria-hidden="true"></i> New role
+    </button>
+  </header>
+
+  <div class="status-panel" *ngIf="isLoading" role="status">
+    <i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i>
+    Loading access profiles…
+  </div>
+
+  <div class="status-panel error" *ngIf="!isLoading && loadError" role="alert">
+    <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
+    <span>{{ loadError }}</span>
+    <button type="button" class="btn-secondary" (click)="load()">Try again</button>
+  </div>
+
+  <section class="roles-layout" *ngIf="!isLoading && !loadError">
+    <aside class="role-list" aria-label="Access profiles">
+      <div class="panel-title">
+        <span>Access profiles</span>
+        <span class="count-badge">{{ roles.length }}</span>
+      </div>
+      <button
+        type="button"
+        class="role-card"
+        *ngFor="let role of roles"
+        [class.active]="selectedRoleId === role.id"
+        (click)="selectRole(role)">
+        <span class="role-icon"><i class="fas fa-id-badge" aria-hidden="true"></i></span>
+        <span class="role-copy">
+          <strong>{{ role.name }}</strong>
+          <small>{{ role.permissions.length }} module permission{{ role.permissions.length === 1 ? '' : 's' }}</small>
+        </span>
+        <i class="fas fa-chevron-right" aria-hidden="true"></i>
+      </button>
+      <div class="role-empty" *ngIf="roles.length === 0">No access profiles have been configured.</div>
+    </aside>
+
+    <form class="permission-editor" (ngSubmit)="save()" novalidate>
+      <div class="editor-heading">
+        <div>
+          <span class="eyebrow">{{ selectedRoleId === null ? 'New profile' : 'Editing profile' }}</span>
+          <h2>{{ selectedRoleId === null ? 'Create an access profile' : roleName }}</h2>
+        </div>
+        <span class="selection-summary"><strong>{{ selectedCount }}</strong> of {{ catalog.length }} selected</span>
+      </div>
+
+      <div class="role-details">
+        <label>
+          Role name <span aria-hidden="true">*</span>
+          <input
+            type="text"
+            name="roleName"
+            [(ngModel)]="roleName"
+            maxlength="80"
+            autocomplete="off"
+            placeholder="e.g. Provincial Records Reviewer"
+            required>
+        </label>
+        <label>
+          Description
+          <input
+            type="text"
+            name="description"
+            [(ngModel)]="description"
+            maxlength="200"
+            autocomplete="off"
+            placeholder="Explain when this access profile is assigned">
+        </label>
+      </div>
+
+      <div class="permission-intro">
+        <i class="fas fa-circle-info" aria-hidden="true"></i>
+        Saving takes effect on the user’s next authorised request. Their next sign-in also refreshes which navigation items are visible.
+      </div>
+
+      <div class="permission-groups">
+        <section class="permission-group" *ngFor="let group of groupedCatalog">
+          <header>
+            <div>
+              <h3>{{ group.group }}</h3>
+              <small>{{ group.permissions.length }} available</small>
+            </div>
+            <label class="group-toggle">
+              <input
+                type="checkbox"
+                [checked]="isGroupSelected(group.group)"
+                (change)="toggleGroup(group.group, $any($event.target).checked)">
+              Select group
+            </label>
+          </header>
+          <label class="permission-row" *ngFor="let permission of group.permissions">
+            <input
+              type="checkbox"
+              [checked]="isSelected(permission.name)"
+              [disabled]="isBaselinePermission(permission.name)"
+              (change)="togglePermission(permission.name, $any($event.target).checked)">
+            <span class="permission-check" aria-hidden="true"><i class="fas fa-check"></i></span>
+            <span>
+              <strong>{{ permission.name }}</strong>
+              <small>{{ permission.description }}</small>
+              <small class="baseline-note" *ngIf="isBaselinePermission(permission.name)"><i class="fas fa-lock" aria-hidden="true"></i> Required landing page</small>
+            </span>
+          </label>
+        </section>
+      </div>
+
+      <footer class="editor-actions">
+        <button type="button" class="btn-secondary" (click)="startNewRole()">Clear</button>
+        <button type="submit" class="btn-primary" [disabled]="isSaving">
+          <i class="fas" [class.fa-floppy-disk]="!isSaving" [class.fa-circle-notch]="isSaving" [class.fa-spin]="isSaving" aria-hidden="true"></i>
+          {{ isSaving ? 'Saving…' : (selectedRoleId === null ? 'Create role' : 'Save permissions') }}
+        </button>
+      </footer>
+    </form>
+  </section>
+</main>

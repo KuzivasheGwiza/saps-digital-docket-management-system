@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37216.2 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SAPS.DDMS.API", "SAPS.DDMS.API\SAPS.DDMS.API.csproj", "{BA057394-EA5C-4409-B71A-BD35911DD13B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SAPS.DDMS.API.Tests", "SAPS.DDMS.API.Tests\SAPS.DDMS.API.Tests.csproj", "{8FDF00F7-E913-4E8E-B8FA-1DD11B2A5DF7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BA057394-EA5C-4409-B71A-BD35911DD13B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA057394-EA5C-4409-B71A-BD35911DD13B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA057394-EA5C-4409-B71A-BD35911DD13B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA057394-EA5C-4409-B71A-BD35911DD13B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FDF00F7-E913-4E8E-B8FA-1DD11B2A5DF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FDF00F7-E913-4E8E-B8FA-1DD11B2A5DF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FDF00F7-E913-4E8E-B8FA-1DD11B2A5DF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FDF00F7-E913-4E8E-B8FA-1DD11B2A5DF7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EC69309B-32D0-4788-B4DA-493CFC42B10B}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,58 @@
+<main class="feedback-page">
+  <div class="page-header">
+    <div>
+      <h2><i class="fas fa-comments"></i> Feedback</h2>
+      <p>{{ isAdmin ? 'Review and respond to user feedback.' : 'Submit feedback and review responses linked to your account.' }}</p>
+    </div>
+  </div>
+
+  <section class="feedback-form-card">
+    <h3>Submit feedback</h3>
+    <form [formGroup]="feedbackForm" (ngSubmit)="submitFeedback()">
+      <div class="form-group">
+        <label for="feedbackSubject">Subject</label>
+        <input id="feedbackSubject" type="text" formControlName="subject" minlength="3" maxlength="150">
+        <small class="invalid-feedback" *ngIf="feedbackForm.get('subject')?.touched && feedbackForm.get('subject')?.invalid">Enter a subject of at least 3 characters.</small>
+      </div>
+      <div class="form-group">
+        <label for="feedbackMessage">Message</label>
+        <textarea id="feedbackMessage" formControlName="message" rows="4" minlength="10" maxlength="2000"></textarea>
+        <small class="invalid-feedback" *ngIf="feedbackForm.get('message')?.touched && feedbackForm.get('message')?.invalid">Enter a message of at least 10 characters.</small>
+      </div>
+      <button class="btn-primary" type="submit" [disabled]="feedbackForm.invalid || isSubmitting">
+        <i class="fas fa-paper-plane"></i> {{ isSubmitting ? 'Submitting…' : 'Submit feedback' }}
+      </button>
+    </form>
+  </section>
+
+  <section class="feedback-list">
+    <h3>{{ isAdmin ? 'All feedback' : 'My feedback and responses' }}</h3>
+    <div class="loading-spinner" *ngIf="isLoading"><i class="fas fa-spinner fa-spin"></i> Loading feedback…</div>
+    <article class="feedback-card" *ngFor="let item of items">
+      <header>
+        <div>
+          <strong>{{ item.subject }}</strong>
+          <small *ngIf="isAdmin">{{ item.userName }}</small>
+        </div>
+        <span [class]="item.status === 'Responded' ? 'status-active' : 'status-pending'">{{ item.status }}</span>
+      </header>
+      <p>{{ item.message }}</p>
+      <small>Submitted {{ item.createdAt | date:'yyyy-MM-dd HH:mm' }}</small>
+      <div class="response" *ngIf="item.response">
+        <strong>Support response</strong>
+        <p>{{ item.response }}</p>
+        <small *ngIf="item.respondedAt">Responded {{ item.respondedAt | date:'yyyy-MM-dd HH:mm' }}</small>
+      </div>
+      <div class="feedback-actions" *ngIf="isAdmin">
+        <button class="btn-primary respond-button" type="button" (click)="respond(item)" [disabled]="respondingFeedbackId !== null">
+          <i class="fas" [class.fa-spinner]="respondingFeedbackId === item.feedbackID" [class.fa-spin]="respondingFeedbackId === item.feedbackID" [class.fa-reply]="respondingFeedbackId !== item.feedbackID"></i>
+          {{ respondingFeedbackId === item.feedbackID ? 'Saving...' : (item.response ? 'Update response' : 'Respond') }}
+        </button>
+      </div>
+    </article>
+    <div class="no-data" *ngIf="!isLoading && items.length === 0">
+      <i class="fas fa-comments"></i>
+      <p>No feedback has been submitted.</p>
+    </div>
+  </section>
+</main>
