@@ -1,4 +1,3 @@
-// src/app/components/docket-management/docket-management.ts
 import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, OnDestroy, ElementRef, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -183,10 +182,8 @@ export class DocketManagement implements OnInit, OnDestroy {
   readinessLoading = false;
   privacyHistory: any[] = [];
   
-  // UC 3.4 — Archive Docket
   showArchiveModal = false;
 
-  // UC 8.1 — Record Court Outcome
   showCourtOutcomeModal = false;
   courtOutcomeForm!: FormGroup;
   courtOutcomeOptions = [...DEFAULT_COURT_OUTCOMES].sort((a, b) => a.localeCompare(b));
@@ -300,7 +297,6 @@ export class DocketManagement implements OnInit, OnDestroy {
       reason: ['', [Validators.required, Validators.minLength(3)]]
     });
 
-    // UC 8.1 — Court Outcome form
     this.courtOutcomeForm = this.fb.group({
       outcome:          ['', [Validators.required]],
       courtDate:        ['', [Validators.required]],
@@ -426,7 +422,6 @@ export class DocketManagement implements OnInit, OnDestroy {
   }
   
   loadAvailableOfficers(): void {
-    // Only DSC Supervisors can access this endpoint
     if (!this.canAllocateDocket) {
       console.log('User does not have permission to view available officers');
       this.availableOfficers = [];
@@ -441,7 +436,6 @@ export class DocketManagement implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         },
         error: (err) => {
-          // Silently handle 403 Forbidden - user just doesn't have permission
           if (err.status === 403) {
             console.log('Access denied: User cannot view available officers');
             this.availableOfficers = [];
@@ -2272,7 +2266,6 @@ export class DocketManagement implements OnInit, OnDestroy {
       });
   }
 
-  // UC 3.4 — Archive Docket
   openArchiveModal(docket: Docket): void {
     if (!this.canArchiveDocket) {
       this.toastr.error('You do not have permission to archive dockets');
@@ -2322,7 +2315,6 @@ export class DocketManagement implements OnInit, OnDestroy {
       });
   }
 
-  // UC 8.1 — Record Court Outcome
   openCourtOutcomeModal(docket: Docket): void {
     if (!this.canRecordCourtOutcome) {
       this.toastr.error('You do not have permission to record court outcomes');

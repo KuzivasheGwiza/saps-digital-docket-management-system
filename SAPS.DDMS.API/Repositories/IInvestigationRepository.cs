@@ -1,5 +1,4 @@
 ﻿using SAPS.DDMS.API.Models;
-// Repositories/IInvestigationRepository.cs
 
 namespace SAPS.DDMS.API.Repositories
 {

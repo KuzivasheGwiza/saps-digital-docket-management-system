@@ -54,18 +54,7 @@ namespace SAPS.DDMS.API.Helpers
 
         public static string GenerateActivationToken()
         {
-            // Method 1: Use Guid.ToString("N") - Returns 32 hex characters (safe and simple)
             return Guid.NewGuid().ToString("N");
-
-            // Method 2: If you want to keep Base64 approach, generate enough bytes
-            // using var rng = RandomNumberGenerator.Create();
-            // var bytes = new byte[24]; // 24 bytes = 192 bits, produces 32 chars in Base64
-            // rng.GetBytes(bytes);
-            // return Convert.ToBase64String(bytes)
-            //     .Replace("+", "")
-            //     .Replace("/", "")
-            //     .Replace("=", "")
-            //     .Substring(0, 32);
         }
 
         public static string GenerateSixDigitOtp()

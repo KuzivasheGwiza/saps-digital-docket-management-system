@@ -1,13 +1,11 @@
-/* ════════════════════════════════════════════════════════════════════════
-   SAPS DDMS — Dashboard  (premium v3)
-   ════════════════════════════════════════════════════════════════════════ */
+/* Dashboard layout */
 .dashboard {
   padding: 28px 24px;
   max-width: 1440px;
   margin: 0 auto;
 }
 
-/* ── Welcome banner ───────────────────────────────────────────────────── */
+/* Welcome banner */
 .welcome-section {
   display: flex;
   justify-content: space-between;
@@ -153,7 +151,7 @@
   .admin-action-grid { grid-template-columns: 1fr; }
 }
 
-/* ── Stats grid ───────────────────────────────────────────────────────── */
+/* Statistics */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -239,7 +237,7 @@
 .stat-trend.up   { color: #0A7040; }
 .stat-trend.down { color: #C0392B; }
 
-/* ── SLA Panel ────────────────────────────────────────────────────────── */
+/* SLA panel */
 .sla-panel {
   background: white;
   border-top: 3px solid #FFB81C;
@@ -321,7 +319,7 @@
 
 .sla-table tr:hover td { background: rgba(0,116,217,.03); }
 
-/* ── Charts ───────────────────────────────────────────────────────────── */
+/* Charts */
 .charts-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -363,7 +361,7 @@
 
 .chart-frame canvas { max-width: 100% !important; }
 
-/* ── Recent dockets ───────────────────────────────────────────────────── */
+/* Recent dockets */
 .recent-dockets {
   background: white;
   border-radius: 12px;
@@ -386,7 +384,7 @@
 .dockets-table td { padding: 12px 14px; border-bottom: 1px solid #EEF1F7; }
 .dockets-table tr:hover td { background: rgba(0,116,217,.03); }
 
-/* ── Quick actions ────────────────────────────────────────────────────── */
+/* Quick actions */
 .quick-actions {
   background: white;
   border-radius: 12px;
@@ -443,7 +441,7 @@
   box-shadow: 0 4px 12px rgba(0,31,63,.1);
 }
 
-/* ── Status chips ─────────────────────────────────────────────────────── */
+/* Status chips */
 .status-open        { background: #FFF8E1; color: #7A5C00; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
 .status-allocated   { background: #E8F5E9; color: #2E7D32; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
 .status-investigation { background: #F3E5F5; color: #6A1B9A; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
@@ -455,7 +453,7 @@
 .no-data i { font-size: 40px; display: block; margin-bottom: 12px; opacity: .5; }
 .loading-spinner { text-align: center; padding: 48px; color: #637083; }
 
-/* ── Role badges ──────────────────────────────────────────────────────── */
+/* Role badges */
 .role-badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
 .role-admin     { background: rgba(255,255,255,.15); color: white; border: 1px solid rgba(255,255,255,.2); }
 .role-supervisor{ background: rgba(0,116,217,.15); color: #3399FF; border: 1px solid rgba(0,116,217,.25); }
@@ -464,11 +462,11 @@
 .role-clerk     { background: rgba(200,130,255,.15); color: #E0AAFF; border: 1px solid rgba(200,130,255,.25); }
 .role-default   { background: rgba(255,255,255,.1); color: white; border: 1px solid rgba(255,255,255,.15); }
 
-/* ── Btn-icon ─────────────────────────────────────────────────────────── */
+/* Icon buttons */
 .btn-icon { background: none; border: none; cursor: pointer; color: #637083; padding: 7px 9px; border-radius: 6px; font-size: 14px; transition: all .15s; }
 .btn-icon:hover { background: rgba(0,116,217,.08); color: #0074D9; }
 
-/* ── Animations ───────────────────────────────────────────────────────── */
+/* Motion */
 @keyframes fadeUp  { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 @keyframes countUp { from { opacity:0; transform:translateY(6px); }  to { opacity:1; transform:translateY(0); } }
 

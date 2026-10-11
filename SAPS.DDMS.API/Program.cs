@@ -21,7 +21,6 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
-// Add services to the container
 builder.Services.AddControllers();
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
@@ -59,7 +58,7 @@ builder.Services.AddAuthorization(options =>
     }
 });
 
-// Configure Swagger with JWT support
+// Document the bearer-token scheme in the interactive API explorer.
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
@@ -95,12 +94,10 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Configure Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
         sqlOptions => sqlOptions.CommandTimeout(60)));
 
-// Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["SecretKey"];
 
@@ -182,7 +179,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Configure CORS
 var configuredOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins")
     .Get<string[]>()
     ?.Where(origin => !string.IsNullOrWhiteSpace(origin))
@@ -203,10 +199,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Register Helpers
+// Application dependencies
 builder.Services.AddScoped<JwtHelper>();
 
-// Register Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IDocketRepository, DocketRepository>();
 builder.Services.AddScoped<IIncidentRepository, IncidentRepository>();
@@ -215,7 +210,6 @@ builder.Services.AddScoped<IInvestigationRepository, InvestigationRepository>();
 builder.Services.AddScoped<IEvidenceRepository, EvidenceRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
-// Register Services
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IDatabaseBackupService, DatabaseBackupService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -234,12 +228,11 @@ builder.Services.AddScoped<IInvestigationNoteService, InvestigationNoteService>(
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IDataExchangeService, DataExchangeService>();
 
-// Register AI service: deterministic local fallback. If you provide Gemini API key, wire a Gemini provider here.
+// The deterministic AI provider keeps police data on the local server.
 builder.Services.AddScoped<IAiService, LocalAiService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -252,7 +245,6 @@ if (app.Environment.IsDevelopment())
 if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 
-// Create wwwroot folder for file uploads
 var wwwrootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
 if (!Directory.Exists(wwwrootPath))
     Directory.CreateDirectory(wwwrootPath);
@@ -267,12 +259,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Ensure database is created with diagnostics and clearer error handling
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-    // Read configuration & environment for diagnostics (do not log secrets)
+    // Diagnose connectivity without exposing credentials from the connection string.
     var configuration = app.Configuration;
     var envName = app.Environment.EnvironmentName;
     var connString = configuration.GetConnectionString("DefaultConnection") ?? string.Empty;

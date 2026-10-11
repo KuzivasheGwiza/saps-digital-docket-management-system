@@ -1,5 +1,4 @@
 ﻿using SAPS.DDMS.API.Models;
-// Services/IDocketService.cs
 using SAPS.DDMS.API.Helpers;
 using SAPS.DDMS.API.Models.DTOs;
 using SAPS.DDMS.API.Repositories;
@@ -265,7 +264,6 @@ namespace SAPS.DDMS.API.Services
             };
         }
 
-        // UC 3.1 - Create Docket (Incident must be captured first)
         public async Task<ServiceResult<DocketResponseDto>> CreateDocketAsync(CreateDocketDto createDto, int createdByUserId)
         {
             var createdByUser = await _userRepository.GetByIdAsync(createdByUserId);
@@ -304,7 +302,8 @@ namespace SAPS.DDMS.API.Services
 
             await using var transaction = await _db.Database.BeginTransactionAsync();
 
-            // Step 1: Create Incident FIRST (business requirement - incident must be captured before docket)
+            // The incident and investigation must exist before their foreign keys can
+            // be assigned to the docket, so all three are created in one transaction.
             var incident = new Incident
             {
                 OccurrenceDate = createDto.Incident.OccurrenceDate,
@@ -331,10 +330,8 @@ namespace SAPS.DDMS.API.Services
 
             var createdIncident = await _incidentRepository.CreateIncidentAsync(incident);
 
-            // Step 2: Generate docket number
             var docketNumber = DocketNumberHelper.GenerateDocketNumber(createdByUser.FK_StationID, generatedAt);
 
-            // Step 3: Create Investigation
             var investigation = new Investigation
             {
                 Title = $"Investigation for Docket {docketNumber}",
@@ -342,7 +339,6 @@ namespace SAPS.DDMS.API.Services
             };
             var createdInvestigation = await _docketRepository.CreateInvestigationAsync(investigation);
 
-            // Step 4: Create Docket
             var docket = new Docket
             {
                 DocketNumber = docketNumber,
@@ -376,7 +372,6 @@ namespace SAPS.DDMS.API.Services
             return ServiceResult<DocketResponseDto>.SuccessResult(response, $"Docket created successfully. Number: {docketNumber}");
         }
 
-        // UC 3.2 - Read Docket by ID
         public async Task<ServiceResult<DocketResponseDto>> GetDocketByIdAsync(int docketId, int requestingUserId)
         {
             var requestingUser = await _userRepository.GetByIdAsync(requestingUserId);
@@ -387,7 +382,6 @@ namespace SAPS.DDMS.API.Services
             if (docket == null)
                 return ServiceResult<DocketResponseDto>.Failure("Docket not found.");
 
-            // Station scope access control
             if (docket.FK_StationID != requestingUser.FK_StationID && requestingUser.Role?.Name != "System Administrator")
                 return ServiceResult<DocketResponseDto>.Failure("You do not have permission to view this docket.");
 
@@ -624,7 +618,6 @@ namespace SAPS.DDMS.API.Services
             return ServiceResult<List<DocketResponseDto>>.SuccessResult(response);
         }
 
-        // UC 3.3 - Update Docket
         public async Task<ServiceResult<bool>> UpdateDocketAsync(int docketId, UpdateDocketDto updateDto, int requestingUserId)
         {
             var requestingUser = await _userRepository.GetByIdAsync(requestingUserId);
@@ -645,7 +638,6 @@ namespace SAPS.DDMS.API.Services
             if (!isCreator && !isDocketAdmin && !isSystemAdmin)
                 return ServiceResult<bool>.Failure("You do not have permission to update this docket.");
 
-            // Business rule: Reason must be at least 20 characters
             if (string.IsNullOrWhiteSpace(updateDto.ReasonForUpdate) || updateDto.ReasonForUpdate.Length < 20)
                 return ServiceResult<bool>.Failure("A reason of at least 20 characters is required for all docket edits.");
 
@@ -670,7 +662,6 @@ namespace SAPS.DDMS.API.Services
             return ServiceResult<bool>.SuccessResult(true, "Docket updated successfully.");
         }
 
-        // UC 3.5 - Allocate Docket to Investigating Officer
         public async Task<ServiceResult<bool>> AllocateDocketAsync(int docketId, AllocateDocketDto allocateDto, int allocatedByUserId)
         {
             var allocatedBy = await _userRepository.GetByIdAsync(allocatedByUserId);
@@ -689,7 +680,6 @@ namespace SAPS.DDMS.API.Services
             if (!isSystemAdmin && docket.FK_StationID != allocatedBy.FK_StationID)
                 return ServiceResult<bool>.Failure("Docket must belong to your station.");
 
-            // Only OPEN dockets can be allocated
             if (docket.DocketStatus?.StatusName != "OPEN")
                 return ServiceResult<bool>.Failure($"This docket is no longer in OPEN status.");
 
@@ -716,7 +706,6 @@ namespace SAPS.DDMS.API.Services
                 !string.Equals(investigatingOfficer.AccountStatus, "Active", StringComparison.OrdinalIgnoreCase))
                 return ServiceResult<bool>.Failure("The selected user must be an active, activated and unlocked Investigating Officer.");
 
-            // Must be from same station
             if (investigatingOfficer.FK_StationID != allocatedBy.FK_StationID &&
                 !isSystemAdmin)
                 return ServiceResult<bool>.Failure("Investigating Officer must be from the same station.");
@@ -730,7 +719,6 @@ namespace SAPS.DDMS.API.Services
                     $"{officerName} cannot be allocated this docket because they already manage {activeDocketCount} active dockets, which is the configured maximum of {maxActiveDockets}.");
             }
 
-            // Create Investigation Assignment
             var assignment = new InvestigationAssignment
             {
                 Role = "PRIMARY_IO",
@@ -738,17 +726,14 @@ namespace SAPS.DDMS.API.Services
                 FK_InvestigationID = docket.FK_InvestigationID.Value,
                 FK_UserID = allocateDto.InvestigatingOfficerUserID,
                 FK_AssignedByUserID = allocatedByUserId,
-                // The assigned Investigating Officer, not a DSC Supervisor, accepts or rejects an allocation.
                 AllocationReviewStatus = "Awaiting Officer Response"
             };
             await _docketRepository.CreateAssignmentAsync(assignment);
 
-            // Update docket status
             docket.DateAllocated = DateTime.UtcNow;
             docket.FK_DocketStatusID = 2; // ALLOCATED
             await _docketRepository.UpdateAsync(docket);
 
-            // Create notification
             var notification = new Notification
             {
                 Title = "New Docket Allocated",
@@ -760,7 +745,6 @@ namespace SAPS.DDMS.API.Services
             };
             await _notificationRepository.CreateAsync(notification);
 
-            // Send email notification
             await _emailService.SendNotificationEmailAsync(investigatingOfficer.EmailAddress, "New Docket Allocated",
                 $"You have been allocated docket {docket.DocketNumber} (OB: {docket.OBReferenceNumber}). Please log in to review within 24 hours.");
 

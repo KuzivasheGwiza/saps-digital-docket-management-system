@@ -1,4 +1,3 @@
-// src/app/models/evidence.model.ts
 export interface Evidence {
     evidenceID: number;
     evidenceReferenceNumber: string;

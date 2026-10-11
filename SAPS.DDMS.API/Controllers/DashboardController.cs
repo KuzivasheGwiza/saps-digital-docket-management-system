@@ -1,4 +1,3 @@
-﻿// Controllers/DashboardController.cs
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SAPS.DDMS.API.Services;
@@ -19,7 +18,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// Get dashboard statistics for graphs (Complexity #4)
+        /// Returns the aggregated statistics used by the dashboard charts.
         /// </summary>
         [HttpGet("stats")]
         public async Task<IActionResult> GetDashboardStats()

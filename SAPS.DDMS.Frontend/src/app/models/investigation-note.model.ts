@@ -1,4 +1,3 @@
-// src/app/models/investigation-note.model.ts
 export interface InvestigationNote {
     noteID: number;
     description: string;

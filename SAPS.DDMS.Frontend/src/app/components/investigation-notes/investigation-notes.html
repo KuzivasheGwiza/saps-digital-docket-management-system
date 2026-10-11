@@ -1,4 +1,3 @@
-<!-- src/app/components/investigation-notes/investigation-notes.html -->
 <div class="investigation-notes">
     <div class="page-header">
         <div>
@@ -35,7 +34,6 @@
         </table>
     </section>
     
-    <!-- Notes Timeline -->
     <div class="notes-timeline" *ngIf="!isLoading">
         <div class="timeline-item" *ngFor="let note of notes">
             <div class="timeline-marker">
@@ -74,7 +72,6 @@
                     <button type="button" class="btn-icon" *ngIf="canViewVersions" (click)="viewVersions(note)" title="View version history" aria-label="View note version history">
                         <i class="fas fa-history"></i>
                     </button>
-                    <!-- UC 4.4 — Request Archive -->
                     <button type="button" class="btn-icon" (click)="openArchiveRequestModal(note)"
                              title="Request Archive"
                              aria-label="Request note archive"
@@ -199,7 +196,7 @@
 </div>
 
 
-<!-- UC 4.4 — Archive Investigation Note Request Modal -->
+<!-- Archive request modal -->
 <div class="modal show" *ngIf="showArchiveRequestModal">
     <div class="modal-content">
         <div class="modal-header">

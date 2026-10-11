@@ -75,7 +75,6 @@ namespace SAPS.DDMS.API.Models
         public virtual ICollection<DocketTimer> DocketTimers { get; set; } = null!;
         public virtual ICollection<DocketPrivacyFlag> DocketPrivacyFlags { get; set; } = null!;
 
-        // New navigation for status history
         public virtual ICollection<DocketStatusHistory> DocketStatusHistories { get; set; } = new List<DocketStatusHistory>();
 
     }

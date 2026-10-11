@@ -1,5 +1,3 @@
-// src/app/components/system-config/system-config.ts
-// Complexity 1n: Admin-configurable timer | Complexity 4b: Business rules in DB
 import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -42,7 +40,6 @@ export class SystemConfig implements OnInit, OnDestroy {
   editingKey: string | null = null;
   editForm: FormGroup;
 
-  // Complexity 1n — known timer/configurable settings
   timerSettings = [
     { key: 'SESSION_TIMEOUT_MINUTES',    label: 'Session Timeout (minutes)',        unit: 'minutes', min: 5,  max: 120 },
     { key: 'OTP_EXPIRY_MINUTES',         label: 'OTP Expiry (minutes)',             unit: 'minutes', min: 1,  max: 30 },
@@ -51,7 +48,6 @@ export class SystemConfig implements OnInit, OnDestroy {
     { key: 'MAX_LOGIN_ATTEMPTS',         label: 'Max Failed Login Attempts',         unit: 'attempts',min: 3, max: 10 },
   ];
 
-  // Complexity 4b — business rule settings
   businessRuleSettings = [
     { key: 'DOCKET_PRIORITY_HIGH_DAYS',  label: 'High Priority Docket SLA (days)',  unit: 'days',   min: 1,  max: 30 },
     { key: 'EVIDENCE_RETENTION_YEARS',   label: 'Evidence Retention Period (years)', unit: 'years',  min: 1,  max: 30 },
@@ -82,7 +78,7 @@ export class SystemConfig implements OnInit, OnDestroy {
       .subscribe({
         next: (s) => { this.settings = s || []; this.isLoading = false; this.cdr.markForCheck(); },
         error: () => {
-          // Use sensible defaults if API not available yet
+          // Defaults keep the settings page usable during a temporary API outage.
           this.settings = [
             ...this.timerSettings.map((t,i) => ({ settingID:i+1, settingKey:t.key, settingValue: t.min.toString(), description:t.label, dataType:'int', updatedAt: new Date(), updatedBy:'System' })),
             ...this.businessRuleSettings.map((b,i) => ({ settingID:i+10, settingKey:b.key, settingValue: b.min.toString(), description:b.label, dataType:'int', updatedAt: new Date(), updatedBy:'System' })),

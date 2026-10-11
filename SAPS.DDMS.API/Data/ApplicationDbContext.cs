@@ -1,4 +1,3 @@
-﻿// Data/ApplicationDbContext.cs
 using Microsoft.EntityFrameworkCore;
 using SAPS.DDMS.API.Models;
 
@@ -11,7 +10,7 @@ namespace SAPS.DDMS.API.Data
         {
         }
 
-        // Users and Authentication (Subsystem 1 & 2)
+        // Identity and system administration
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<RolePermissions> RolePermissions { get; set; }
@@ -27,7 +26,7 @@ namespace SAPS.DDMS.API.Data
         public DbSet<BackupRecord> BackupRecords { get; set; }
         public DbSet<SmsMessage> SmsMessages { get; set; }
 
-        // Incident and Docket (Subsystem 3)
+        // Docket management
         public DbSet<GeoLocation> GeoLocations { get; set; }
         public DbSet<IncidentType> IncidentTypes { get; set; }
         public DbSet<Incident> Incidents { get; set; }
@@ -36,7 +35,7 @@ namespace SAPS.DDMS.API.Data
         public DbSet<DocketTimer> DocketTimers { get; set; }
         public DbSet<DocketPrivacyFlag> DocketPrivacyFlags { get; set; }
 
-        // new support tables
+        // Workflow, history and audit records
         public DbSet<DocketStatusHistory> DocketStatusHistories { get; set; }
         public DbSet<EvidenceTransfer> EvidenceTransfers { get; set; }
         public DbSet<ProsecutorBundle> ProsecutorBundles { get; set; }
@@ -54,7 +53,7 @@ namespace SAPS.DDMS.API.Data
         public DbSet<Faq> Faqs { get; set; }
         public DbSet<InvestigationNoteArchiveRequest> InvestigationNoteArchiveRequests { get; set; }
 
-        // Investigation (Subsystem 4)
+        // Investigations
         public DbSet<InvestigationStatus> InvestigationStatuses { get; set; }
         public DbSet<Investigation> Investigations { get; set; }
         public DbSet<InvestigationAssignment> InvestigationAssignments { get; set; }
@@ -62,12 +61,12 @@ namespace SAPS.DDMS.API.Data
         public DbSet<NoteVersion> NoteVersions { get; set; }
         public DbSet<NoteAttachment> NoteAttachments { get; set; }
 
-        // Evidence (Subsystem 5)
+        // Evidence management
         public DbSet<EvidenceType> EvidenceTypes { get; set; }
         public DbSet<EvidenceLocation> EvidenceLocations { get; set; }
         public DbSet<Evidence> Evidences { get; set; }
 
-        // Person Management (Subsystem 11)
+        // People linked to dockets
         public DbSet<PersonRole> PersonRoles { get; set; }
         public DbSet<Person> Persons { get; set; }
         public DbSet<DocketPersonLink> DocketPersonLinks { get; set; }
@@ -76,11 +75,9 @@ namespace SAPS.DDMS.API.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Composite primary key for RolePermissions
             modelBuilder.Entity<RolePermissions>()
                 .HasKey(rp => new { rp.RoleID, rp.PermissionID });
 
-            // Unique indexes
             modelBuilder.Entity<User>().HasIndex(u => u.Username).IsUnique();
             modelBuilder.Entity<User>().HasIndex(u => u.EmailAddress).IsUnique();
             modelBuilder.Entity<Docket>().HasIndex(d => d.DocketNumber).IsUnique();
@@ -89,11 +86,7 @@ namespace SAPS.DDMS.API.Data
             modelBuilder.Entity<Docket>()
                 .ToTable("Dockets", tableBuilder => tableBuilder.UseSqlOutputClause(false));
 
-            // ============================================================
-            // SEED DATA
-            // ============================================================
-
-            // Seed Roles (Subsystem 1)
+            // Seed stable reference values used by validation and workflow rules.
             modelBuilder.Entity<Role>().HasData(
                 new Role { RoleID = 1, Name = "System Administrator", Description = "Full system access" },
                 new Role { RoleID = 2, Name = "DSC Supervisor", Description = "Supervises docket allocation" },
@@ -103,7 +96,6 @@ namespace SAPS.DDMS.API.Data
                 new Role { RoleID = 6, Name = "Records Clerk", Description = "Maintains docket records" },
                 new Role { RoleID = 7, Name = "Prosecutor", Description = "Reviews prosecutor bundles" }
             );
-            // Seed Docket Statuses (Subsystem 3)
             modelBuilder.Entity<DocketStatus>().HasData(
                 new DocketStatus { DocketStatusID = 1, StatusName = "OPEN" },
                 new DocketStatus { DocketStatusID = 2, StatusName = "ALLOCATED" },
@@ -115,7 +107,6 @@ namespace SAPS.DDMS.API.Data
                 new DocketStatus { DocketStatusID = 8, StatusName = "REOPENED" }
             );
 
-            // Seed Investigation Statuses (Subsystem 4)
             modelBuilder.Entity<InvestigationStatus>().HasData(
                 new InvestigationStatus { InvestigationStatusID = 1, StatusName = "OPEN" },
                 new InvestigationStatus { InvestigationStatusID = 2, StatusName = "IN_PROGRESS" },
@@ -123,7 +114,6 @@ namespace SAPS.DDMS.API.Data
                 new InvestigationStatus { InvestigationStatusID = 4, StatusName = "SUSPENDED" }
             );
 
-            // Seed Incident Types
             modelBuilder.Entity<IncidentType>().HasData(
                 new IncidentType { IncidentTypeID = 1, TypeName = "Robbery", Description = "Theft by force" },
                 new IncidentType { IncidentTypeID = 2, TypeName = "Burglary", Description = "Breaking and entering" },
@@ -147,7 +137,6 @@ namespace SAPS.DDMS.API.Data
                 new IncidentType { IncidentTypeID = 20, TypeName = "Public Violence", Description = "Public disorder or violence" }
             );
 
-            // Seed Evidence Types (Subsystem 5)
             modelBuilder.Entity<EvidenceType>().HasData(
                 new EvidenceType { EvidenceTypeID = 1, Name = "Physical" },
                 new EvidenceType { EvidenceTypeID = 2, Name = "Digital" },
@@ -159,7 +148,6 @@ namespace SAPS.DDMS.API.Data
                 new EvidenceType { EvidenceTypeID = 8, Name = "Video" }
             );
 
-            // Seed Evidence Locations (Subsystem 5)
             modelBuilder.Entity<EvidenceLocation>().HasData(
                 new EvidenceLocation { EvidenceLocationID = 1, LocationName = "Evidence Room - Main", PhysicalAddress = "SAPS HQ", StorageRequirements = "Climate controlled" },
                   new EvidenceLocation { EvidenceLocationID = 2, LocationName = "Evidence Room - Secondary", PhysicalAddress = "SAPS Annex", StorageRequirements = "Standard" },
@@ -169,7 +157,6 @@ namespace SAPS.DDMS.API.Data
                 new EvidenceLocation { EvidenceLocationID = 6, LocationName = "Court", PhysicalAddress = "Submitted to court", StorageRequirements = "Court registry" }
             );
 
-            // Seed Person Roles (Subsystem 11)
             modelBuilder.Entity<PersonRole>().HasData(
                 new PersonRole { PersonRoleID = 1, RoleName = "Complainant", Code = "CMP", IsActive = true, Description = "Person who reports the crime" },
                 new PersonRole { PersonRoleID = 2, RoleName = "Suspect", Code = "SUS", IsActive = true, Description = "Person accused of the crime" },
@@ -177,7 +164,6 @@ namespace SAPS.DDMS.API.Data
                 new PersonRole { PersonRoleID = 4, RoleName = "Victim", Code = "VIC", IsActive = true, Description = "Person who suffered harm" }
             );
 
-            // Seed Stations
             modelBuilder.Entity<Station>().HasData(
                 new Station { StationID = 1, StationName = "Pretoria Central", Province = "Gauteng", Region = "Tshwane" },
                 new Station { StationID = 2, StationName = "Johannesburg Central", Province = "Gauteng", Region = "Johannesburg" },
@@ -231,73 +217,61 @@ namespace SAPS.DDMS.API.Data
                 new SystemSetting { SettingID = 10, SettingKey = "TWO_FACTOR_REQUIRED", SettingValue = "false", Description = "When true, every login requires a one-time PIN after password validation.", DataType = "bool", UpdatedAt = new DateTime(2026, 1, 1) }
             );
 
-            // ============================================================
-            // RELATIONSHIP CONFIGURATIONS
-            // ============================================================
-
-            // Docket - Incident (One-to-One)
+            // Restrict deletes where removing a parent could erase operational history
+            // or create SQL Server cascade cycles. True child records cascade explicitly.
             modelBuilder.Entity<Docket>()
                 .HasOne(d => d.Incident)
                 .WithOne(i => i.Docket)
                 .HasForeignKey<Docket>(d => d.FK_IncidentID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Docket - CreatedByUser (FK_CreatedByUserID)
             modelBuilder.Entity<Docket>()
                 .HasOne(d => d.CreatedByUser)
-                .WithMany(u => u.Dockets)  // Make sure User has Dockets navigation property
+                .WithMany(u => u.Dockets)
                 .HasForeignKey(d => d.FK_CreatedByUserID)
-                .OnDelete(DeleteBehavior.Restrict);  // Use Restrict to avoid cascade cycles
+                .OnDelete(DeleteBehavior.Restrict);
 
-            // Docket - Station (FK_StationID)
             modelBuilder.Entity<Docket>()
                 .HasOne(d => d.Station)
                 .WithMany(s => s.Dockets)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Docket - DocketStatus (FK_DocketStatusID)
             modelBuilder.Entity<Docket>()
                 .HasOne(d => d.DocketStatus)
                 .WithMany(ds => ds.Dockets)
                 .HasForeignKey(d => d.FK_DocketStatusID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Docket - Investigation (FK_InvestigationID) - One-to-One
             modelBuilder.Entity<Docket>()
                 .HasOne(d => d.Investigation)
                 .WithOne(i => i.Docket)
                 .HasForeignKey<Docket>(d => d.FK_InvestigationID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // InvestigationAssignment - Investigation (Many-to-One)
             modelBuilder.Entity<InvestigationAssignment>()
                 .HasOne(ia => ia.Investigation)
                 .WithMany(i => i.InvestigationAssignments)
                 .HasForeignKey(ia => ia.FK_InvestigationID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // InvestigationAssignment - User (FK_UserID) - MUST BE RESTRICT to avoid cascade cycles
             modelBuilder.Entity<InvestigationAssignment>()
                 .HasOne(ia => ia.User)
                 .WithMany(u => u.InvestigationAssignments)
                 .HasForeignKey(ia => ia.FK_UserID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // InvestigationAssignment - AssignedBy (FK_AssignedByUserID) - MUST BE RESTRICT
             modelBuilder.Entity<InvestigationAssignment>()
                 .HasOne(ia => ia.AssignedBy)
-                .WithMany()  // No navigation property on User for this relationship
+                .WithMany()
                 .HasForeignKey(ia => ia.FK_AssignedByUserID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // InvestigationNote - Investigation (Many-to-One)
             modelBuilder.Entity<InvestigationNote>()
                 .HasOne(n => n.Investigation)
                 .WithMany(i => i.InvestigationNotes)
                 .HasForeignKey(n => n.FK_InvestigationID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // NoteVersion - Note (Many-to-One)
             modelBuilder.Entity<NoteVersion>()
                 .HasOne(nv => nv.Note)
                 .WithMany(n => n.NoteVersions)
@@ -306,32 +280,28 @@ namespace SAPS.DDMS.API.Data
 
             modelBuilder.Entity<NoteVersion>()
             .HasOne(nv => nv.User)
-            .WithMany(u => u.NoteVersions)  // Make sure User has NoteVersions navigation property
+            .WithMany(u => u.NoteVersions)
             .HasForeignKey(nv => nv.FK_UserID)
             .OnDelete(DeleteBehavior.Restrict);
 
-            // NoteAttachment - Note (Many-to-One)
             modelBuilder.Entity<NoteAttachment>()
                 .HasOne(na => na.Note)
                 .WithMany(n => n.NoteAttachments)
                 .HasForeignKey(na => na.FK_NoteID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Evidence - Docket (Many-to-One)
             modelBuilder.Entity<Evidence>()
                 .HasOne(e => e.Docket)
                 .WithMany(d => d.Evidences)
                 .HasForeignKey(e => e.FK_DocketID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Evidence - EvidenceType (Many-to-One)
             modelBuilder.Entity<Evidence>()
                 .HasOne(e => e.EvidenceType)
                 .WithMany(et => et.Evidences)
                 .HasForeignKey(e => e.FK_EvidenceTypeID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Evidence - EvidenceLocation (Many-to-One)
             modelBuilder.Entity<Evidence>()
                 .HasOne(e => e.EvidenceLocation)
                 .WithMany(el => el.Evidences)
@@ -350,42 +320,36 @@ namespace SAPS.DDMS.API.Data
             .HasForeignKey(e => e.FK_UserID)
             .OnDelete(DeleteBehavior.Restrict);
 
-            // DocketPersonLink - Docket (Many-to-One)
             modelBuilder.Entity<DocketPersonLink>()
                 .HasOne(dpl => dpl.Docket)
                 .WithMany(d => d.DocketPersonLinks)
                 .HasForeignKey(dpl => dpl.FK_DocketID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // DocketPersonLink - Person (Many-to-One)
             modelBuilder.Entity<DocketPersonLink>()
                 .HasOne(dpl => dpl.Person)
                 .WithMany(p => p.DocketPersonLinks)
                 .HasForeignKey(dpl => dpl.FK_PersonID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // DocketPersonLink - LinkedByUser (Many-to-One)
             modelBuilder.Entity<DocketPersonLink>()
                 .HasOne(dpl => dpl.LinkedByUser)
                 .WithMany(u => u.DocketPersonLinks)
                 .HasForeignKey(dpl => dpl.FK_LinkedByUserID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // UserAuditLog - User (Many-to-One)
             modelBuilder.Entity<UserAuditLog>()
                 .HasOne(u => u.User)
                 .WithMany(u => u.UserAuditLogs)
                 .HasForeignKey(u => u.FK_UserID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Notification - User (Many-to-One)
             modelBuilder.Entity<Notification>()
                 .HasOne(n => n.User)
                 .WithMany(u => u.Notifications)
                 .HasForeignKey(n => n.FK_UserID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Session - User (Many-to-One)
             modelBuilder.Entity<Session>()
                 .HasOne(s => s.User)
                 .WithMany(u => u.Sessions)
@@ -394,11 +358,10 @@ namespace SAPS.DDMS.API.Data
 
             modelBuilder.Entity<NoteAttachment>()
             .HasOne(na => na.User)
-            .WithMany(u => u.NoteAttachments)  // Make sure User has NoteAttachments navigation property
+            .WithMany(u => u.NoteAttachments)
             .HasForeignKey(na => na.FK_UserID)
             .OnDelete(DeleteBehavior.Restrict);
 
-            // Incident - User (Many-to-One)
             modelBuilder.Entity<Incident>()
                 .HasOne(i => i.User)
                 .WithMany(u => u.Incidents)
@@ -429,7 +392,6 @@ namespace SAPS.DDMS.API.Data
                 .HasForeignKey(dpf => dpf.FK_Removed_For_UserID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // configure new relationships
             modelBuilder.Entity<DocketStatusHistory>()
                 .HasOne(h => h.Docket)
                 .WithMany(d => d.DocketStatusHistories)
@@ -472,7 +434,6 @@ namespace SAPS.DDMS.API.Data
                 .HasForeignKey(r => r.FK_NoteID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // keep existing relationships and other modelBuilder config intact...
         }
     }
 }

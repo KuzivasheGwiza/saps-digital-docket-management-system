@@ -17,12 +17,10 @@ namespace SAPS.DDMS.API.Helpers
 
         public string GenerateJwtToken(User user, string role, int expiryMinutes)
         {
-            // Get JWT settings with fallbacks
             var jwtKey = _configuration["JwtSettings:SecretKey"] ?? _configuration["Jwt:Key"];
             var jwtIssuer = _configuration["JwtSettings:Issuer"] ?? _configuration["Jwt:Issuer"];
             var jwtAudience = _configuration["JwtSettings:Audience"] ?? _configuration["Jwt:Audience"];
 
-            // Validate required settings
             if (string.IsNullOrEmpty(jwtKey) || jwtKey.Length < 32)
             {
                 throw new InvalidOperationException("JWT SecretKey is missing or too short. Please check appsettings.json");

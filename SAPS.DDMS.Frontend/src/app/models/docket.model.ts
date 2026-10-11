@@ -1,4 +1,3 @@
-// src/app/models/docket.model.ts
 export interface Incident {
     incidentID: number;
     occurrenceDate: Date;

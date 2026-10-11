@@ -1,4 +1,3 @@
-﻿// Controllers/EvidenceController.cs
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SAPS.DDMS.API.Models.DTOs;
@@ -22,7 +21,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 5.2 - Get evidence by docket ID
+        /// Returns evidence linked to a docket within the user's access scope.
         /// </summary>
         [HttpGet("docket/{docketId}")]
         public async Task<IActionResult> GetEvidenceByDocket(int docketId)
@@ -37,7 +36,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 5.2 - Get evidence by ID
+        /// Returns an evidence item within the user's access scope.
         /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetEvidenceById(int id)
@@ -52,7 +51,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 5.1 - Create evidence item
+        /// Captures an evidence item and its integrity metadata.
         /// </summary>
         [HttpPost]
         [Authorize(Roles = "Investigating Officer")]
@@ -68,8 +67,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 5.3 - Update evidence item
-        /// Requires reason (min 10 characters)
+        /// Updates an evidence item and records the required audit reason.
         /// </summary>
         [HttpPut("{id}")]
         [Authorize(Roles = "Investigating Officer")]
@@ -85,7 +83,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// Get all evidence types (for dropdowns)
+        /// Returns active evidence types used by capture forms.
         /// </summary>
         [HttpGet("types")]
         public async Task<IActionResult> GetEvidenceTypes()
@@ -97,7 +95,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// Get all evidence locations (for dropdowns)
+        /// Returns active evidence storage locations.
         /// </summary>
         [HttpGet("locations")]
         public async Task<IActionResult> GetEvidenceLocations()

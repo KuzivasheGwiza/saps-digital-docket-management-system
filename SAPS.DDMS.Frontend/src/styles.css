@@ -1,8 +1,4 @@
-/* ════════════════════════════════════════════════════════════════════════════
-   SAPS DDMS — Global Design System  v3.0
-   Navy #001F3F | Gold #FFB81C | Police Blue #0074D9
-   ════════════════════════════════════════════════════════════════════════════ */
-/* ── CSS Variables ────────────────────────────────────────────────────── */
+/* Global design tokens */
 :root {
   --saps-navy:       #001F3F;
   --saps-navy-deep:  #000D1A;
@@ -44,7 +40,7 @@
   --neutral-grey:    #F7F9FC;
 }
 
-/* ── Reset ────────────────────────────────────────────────────────────── */
+/* Reset */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { min-height: 100%; scroll-behavior: smooth; }
 
@@ -91,7 +87,7 @@ label {
   text-transform: uppercase;
 }
 
-/* ── Page layout ──────────────────────────────────────────────────────── */
+/* Page layout */
 .dashboard, .user-management, .docket-management, .evidence-management,
 .investigation-notes, .person-management, .profile-container,
 .change-password-container, .help-page, .backup-page, .sysconfig-page,
@@ -115,7 +111,7 @@ h1 { font-size: 22px; }
 h2 { font-size: 18px; }
 h3, h4, .section-header h2 { color: var(--grey-900); font-size: 15px; font-weight: 600; }
 
-/* ── Buttons ──────────────────────────────────────────────────────────── */
+/* Buttons */
 .btn-primary, .action-btn.primary, button[type="submit"] {
   background: linear-gradient(135deg, var(--saps-navy) 0%, #003366 100%);
   border: 1px solid var(--saps-navy);
@@ -241,7 +237,7 @@ h3, h4, .section-header h2 { color: var(--grey-900); font-size: 15px; font-weigh
   outline-offset: 2px;
 }
 
-/* ── Cards ────────────────────────────────────────────────────────────── */
+/* Cards */
 .stat-card, .chart-card, .person-card, .modal-content, .login-card,
 .profile-card, .info-card, .recent-dockets, .quick-actions, .topic-detail,
 .users-table, .dockets-table, .evidence-card, .note-card {
@@ -257,7 +253,7 @@ h3, h4, .section-header h2 { color: var(--grey-900); font-size: 15px; font-weigh
   border-top: 3px solid var(--saps-gold);
 }
 
-/* ── Tables ───────────────────────────────────────────────────────────── */
+/* Tables */
 .data-table, .dockets-table table, .users-table table {
   width: 100%;
   border-collapse: collapse;
@@ -297,7 +293,7 @@ h3, h4, .section-header h2 { color: var(--grey-900); font-size: 15px; font-weigh
   color: var(--grey-900);
 }
 
-/* ── Tabs ─────────────────────────────────────────────────────────────── */
+/* Tabs */
 .tabs {
   display: flex;
   flex-wrap: wrap;
@@ -331,7 +327,7 @@ h3, h4, .section-header h2 { color: var(--grey-900); font-size: 15px; font-weigh
   font-weight: 700;
 }
 
-/* ── Badges / Status ──────────────────────────────────────────────────── */
+/* Status badges */
 .status-active, .status-open, .status-complete {
   background: var(--success-bg);
   color: var(--success);
@@ -377,7 +373,7 @@ h3, h4, .section-header h2 { color: var(--grey-900); font-size: 15px; font-weigh
 
 .status-open { background: var(--saps-gold-pale); color: #7A5C00; }
 
-/* ── Modal ────────────────────────────────────────────────────────────── */
+/* Modals */
 .modal {
   position: fixed;
   inset: 0;
@@ -448,7 +444,7 @@ h3, h4, .section-header h2 { color: var(--grey-900); font-size: 15px; font-weigh
 
 .close:hover { color: var(--white); }
 
-/* ── Form ─────────────────────────────────────────────────────────────── */
+/* Forms */
 .form-group { margin-bottom: 18px; }
 
 .form-group label {
@@ -466,7 +462,7 @@ h3, h4, .section-header h2 { color: var(--grey-900); font-size: 15px; font-weigh
 .invalid-feedback { color: var(--danger); font-size: 11px; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
 .field-help { color: var(--grey-400); font-size: 11px; margin-top: 4px; display: block; }
 
-/* ── Search bar ───────────────────────────────────────────────────────── */
+/* Search */
 .search-bar {
   position: relative;
   margin-bottom: 16px;
@@ -487,7 +483,7 @@ h3, h4, .section-header h2 { color: var(--grey-900); font-size: 15px; font-weigh
   pointer-events: none;
 }
 
-/* ── Loading / skeleton ───────────────────────────────────────────────── */
+/* Loading states */
 .loading-spinner {
   text-align: center;
   padding: 48px;
@@ -509,7 +505,7 @@ h3, h4, .section-header h2 { color: var(--grey-900); font-size: 15px; font-weigh
   border-radius: var(--radius-sm);
 }
 
-/* ── No data ──────────────────────────────────────────────────────────── */
+/* Empty states */
 .no-data {
   text-align: center;
   padding: 56px 24px;
@@ -525,7 +521,7 @@ h3, h4, .section-header h2 { color: var(--grey-900); font-size: 15px; font-weigh
 
 .no-data p { font-size: 15px; max-width: 300px; margin: 0 auto; line-height: 1.6; }
 
-/* ── Alert banners ────────────────────────────────────────────────────── */
+/* Alerts */
 .alert-info {
   background: rgba(0,116,217,.07);
   border-left: 3px solid var(--police-blue);
@@ -578,7 +574,7 @@ h3, h4, .section-header h2 { color: var(--grey-900); font-size: 15px; font-weigh
   margin-bottom: 16px;
 }
 
-/* ── Role badges ──────────────────────────────────────────────────────── */
+/* Role badges */
 .role-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: .04em; display: inline-block; }
 .role-admin     { background: #F0F0F0; color: #333; }
 .role-supervisor{ background: rgba(0,116,217,.12); color: var(--police-blue); }
@@ -587,13 +583,13 @@ h3, h4, .section-header h2 { color: var(--grey-900); font-size: 15px; font-weigh
 .role-clerk     { background: #F3E5F5; color: #7B1FA2; }
 .role-default   { background: var(--grey-100); color: var(--grey-600); }
 
-/* ── Scrollbar ────────────────────────────────────────────────────────── */
+/* Scrollbars */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--grey-50); }
 ::-webkit-scrollbar-thumb { background: var(--grey-200); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--grey-400); }
 
-/* ── Responsive ───────────────────────────────────────────────────────── */
+/* Responsive layout */
 @media (max-width: 1023px) {
   .dashboard, .user-management, .docket-management, .evidence-management,
   .investigation-notes, .person-management, .profile-container,
@@ -727,9 +723,7 @@ h3, h4, .section-header h2 { color: var(--grey-900); font-size: 15px; font-weigh
   }
 }
 
-/* ════════════════════════════════════════════════════════════════════════
-   ANIMATIONS
-   ════════════════════════════════════════════════════════════════════════ */
+/* Shared motion */
 @keyframes pageFadeUp {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -798,7 +792,6 @@ h3, h4, .section-header h2 { color: var(--grey-900); font-size: 15px; font-weigh
   80%       { transform: translateX(5px); }
 }
 
-/* Staggered card entrance */
 .stagger-1 { animation: fadeUp .35s ease .05s both; }
 .stagger-2 { animation: fadeUp .35s ease .10s both; }
 .stagger-3 { animation: fadeUp .35s ease .15s both; }
@@ -806,7 +799,6 @@ h3, h4, .section-header h2 { color: var(--grey-900); font-size: 15px; font-weigh
 .stagger-5 { animation: fadeUp .35s ease .25s both; }
 .stagger-6 { animation: fadeUp .35s ease .30s both; }
 
-/* Table row entrance */
 .data-table tbody tr, .dockets-table tbody tr, .users-table tbody tr {
   animation: slideRight .25s ease both;
 }
@@ -817,10 +809,7 @@ h3, h4, .section-header h2 { color: var(--grey-900); font-size: 15px; font-weigh
 .data-table tbody tr:nth-child(4), .dockets-table tbody tr:nth-child(4), .users-table tbody tr:nth-child(4) { animation-delay: .13s; }
 .data-table tbody tr:nth-child(5), .dockets-table tbody tr:nth-child(5), .users-table tbody tr:nth-child(5) { animation-delay: .16s; }
 
-/* ══════════════════════════════════════════════════════════════════════
-   CLIENT HANDOFF PREMIUM SAPS THEME
-   Unified shell, cards, forms, tables and modal treatment
-   ══════════════════════════════════════════════════════════════════════ */
+/* Shared application shell and component surfaces */
 :root {
   --saps-shell-top: #123a63;
   --saps-shell-bottom: #081f38;

@@ -1,4 +1,3 @@
-// src/app/services/docket.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -156,12 +155,10 @@ export class DocketService {
         return this.http.get<any[]>(`${API_URL}/docket/available-officers`);
     }
 
-    // UC 3.4 - Archive Docket
     archiveDocket(id: number): Observable<any> {
         return this.http.patch(`${API_URL}/docket/${id}/archive`, {});
     }
 
-    // UC 8.1 - Record Court Outcome
     recordCourtOutcome(id: number, payload: { outcome: string; courtDate: string; presidingOfficer: string; sentence?: string; notes?: string }): Observable<any> {
         return this.http.post(`${API_URL}/docket/${id}/court-outcome`, payload);
     }

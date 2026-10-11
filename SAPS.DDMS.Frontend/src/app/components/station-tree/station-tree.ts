@@ -1,5 +1,3 @@
-// station-tree.ts — Complexity 1i: tree view | 1j: dynamic tree CRUD
-// Tree: Province → Station → Docket count
 import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -206,7 +204,6 @@ export class StationTree implements OnInit, OnDestroy {
       .sort((left, right) => left.name.localeCompare(right.name));
   }
 
-  // Complexity 1j — Add station (modifies tree structure)
   openAddModal(): void {
     if (!this.isAdmin) {
       this.toastr.error('A station cannot be added because only a System Administrator may change the hierarchy.');
@@ -346,7 +343,6 @@ export class StationTree implements OnInit, OnDestroy {
       });
   }
 
-  // Complexity 1j — Edit station inline
   startEdit(station: StationNode): void {
     if (!this.isAdmin) {
       this.toastr.error('The station cannot be edited because only a System Administrator may change the hierarchy.');
@@ -382,7 +378,6 @@ export class StationTree implements OnInit, OnDestroy {
 
   cancelEdit(station: StationNode): void { station.editing = false; this.cdr.markForCheck(); }
 
-  // Complexity 1j — Delete station
   openDeleteModal(station: StationNode): void { this.selectedStation = station; this.showDeleteModal = true; this.cdr.markForCheck(); }
   closeDeleteModal(): void { this.showDeleteModal = false; this.selectedStation = null; this.cdr.markForCheck(); }
 

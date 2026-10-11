@@ -1,4 +1,3 @@
-// src/app/components/dashboard/dashboard.ts
 import {
   Component,
   OnInit,
@@ -69,7 +68,6 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     this.renderChartsWhenReady();
   }
 
-  // Count-up animation for stat numbers
   animateCountUp(elementId: string, target: number, duration = 800): void {
     const el = document.getElementById(elementId);
     if (!el) return;
@@ -84,7 +82,6 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     requestAnimationFrame(tick);
   }
 
-  // Animate all stats after load
   animateStats(): void {
     if (!this.stats) return;
     setTimeout(() => {

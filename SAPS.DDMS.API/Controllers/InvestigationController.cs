@@ -1,4 +1,3 @@
-﻿// Controllers/InvestigationController.cs
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +27,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 4.2 - Get investigation notes by investigation ID
+        /// Returns notes for an investigation within the user's access scope.
         /// </summary>
         [HttpGet("{investigationId}/notes")]
         public async Task<IActionResult> GetInvestigationNotes(int investigationId)
@@ -60,7 +59,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 4.1 - Create investigation note
+        /// Creates an investigation note with an optional attachment.
         /// </summary>
         [HttpPost("notes")]
         [Authorize(Roles = "Investigating Officer")]
@@ -76,7 +75,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 4.3 - Update investigation note
+        /// Updates a note while preserving its immutable version history.
         /// Requires reason (min 10 characters)
         /// </summary>
         [HttpPut("notes/{noteId}")]

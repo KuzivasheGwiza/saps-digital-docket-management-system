@@ -97,7 +97,6 @@ namespace SAPS.DDMS.API.Repositories
 
         public async Task<List<Docket>> GetByInvestigatingOfficerAsync(int userId)
         {
-            // First get investigations assigned to this officer
             var assignments = await _context.InvestigationAssignments
                 .AsNoTracking()
                 .Where(ia => ia.FK_UserID == userId)

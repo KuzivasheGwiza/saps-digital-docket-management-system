@@ -1,4 +1,3 @@
-// backup.ts — Complexity 10a: Backup/restore from front end
 import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -63,7 +62,6 @@ export class Backup implements OnInit, OnDestroy {
       });
   }
 
-  // Complexity 10a — Create backup from front end
   createBackup(): void {
     this.isCreating = true;
     this.cdr.markForCheck();
@@ -84,7 +82,6 @@ export class Backup implements OnInit, OnDestroy {
       });
   }
 
-  // Complexity 10a — Restore from selected backup
   openRestoreModal(backup: BackupRecord): void { this.selectedBackup = backup; this.showRestoreModal = true; this.cdr.markForCheck(); }
   closeRestoreModal(): void { this.showRestoreModal = false; this.selectedBackup = null; this.cdr.markForCheck(); }
 

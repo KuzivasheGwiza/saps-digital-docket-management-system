@@ -1,4 +1,3 @@
-/* src/app/components/investigation-notes/investigation-notes.css */
 .investigation-notes {
     padding: 24px;
     max-width: 1000px;
@@ -333,7 +332,7 @@
     color: #666;
     margin-top: 5px;
 }
-/* ── Animation & UX fixes ────────────────────────────────────────────── */
+/* Motion and interaction states */
 @keyframes fadeUp {
     from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -357,11 +356,9 @@
     transform: translateY(-2px);
 }
 
-/* Archive button styling */
 .btn-icon.archive { color: #B8620A; }
 .btn-icon.archive:hover { background: rgba(184,98,10,.1); }
 
-/* Modal improvements */
 .modal-content .form-control { width: 100%; padding: 8px 12px; border: 1px solid #D8DEE6; border-radius: 4px; font-size: 13px; font-family: inherit; }
 .modal-content .form-control:focus { outline: none; border-color: #0074D9; box-shadow: 0 0 0 3px rgba(0,116,217,.12); }
 .field-help { font-size: 11px; color: #8FA0B4; margin-top: 3px; display: block; }

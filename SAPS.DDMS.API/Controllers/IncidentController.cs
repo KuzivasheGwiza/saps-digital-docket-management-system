@@ -1,4 +1,3 @@
-﻿// Controllers/IncidentController.cs
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SAPS.DDMS.API.Models.DTOs;

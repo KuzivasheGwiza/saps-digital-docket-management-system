@@ -17,11 +17,8 @@ export class AuditService {
 
   getLogs(filters: AuditLogFilters = {}): Observable<any[]> {
     return this.http.get<any[]>(`${API_URL}/audit/logs`, {
-      // Audit payloads contain before/after JSON snapshots. Keeping the first
-      // render deliberately small prevents a cold SQL Express instance from
-      // transferring 150 wide rows before the page can respond. Filters still
-      // run on the server, and the full matching set remains available through
-      // the explicit CSV export action.
+      // Audit snapshots are wide, so the initial page is deliberately small.
+      // Server-side filters and CSV export still cover the complete result set.
       params: this.buildParams(filters).set('pageSize', '25')
     });
   }

@@ -1,5 +1,4 @@
 ﻿using SAPS.DDMS.API.Models;
-// Services/IUserService.cs
 using SAPS.DDMS.API.Helpers;
 using SAPS.DDMS.API.Models.DTOs;
 using SAPS.DDMS.API.Repositories;
@@ -45,7 +44,6 @@ namespace SAPS.DDMS.API.Services
             _appUrl = (configuration["AppUrl"] ?? "http://localhost:4200").TrimEnd('/');
         }
 
-        // UC 1.2 - Read all users
         public async Task<ServiceResult<List<UserResponseDto>>> GetAllUsersAsync(int? roleId = null, bool? isActive = null)
         {
             var users = await _userRepository.GetAllAsync(roleId, isActive);
@@ -73,7 +71,6 @@ namespace SAPS.DDMS.API.Services
             return ServiceResult<List<UserResponseDto>>.SuccessResult(response);
         }
 
-        // UC 1.2 - Read user by ID
         public async Task<ServiceResult<UserResponseDto>> GetUserByIdAsync(int id)
         {
             var user = await _userRepository.GetByIdAsync(id);
@@ -104,7 +101,6 @@ namespace SAPS.DDMS.API.Services
             return ServiceResult<UserResponseDto>.SuccessResult(response);
         }
 
-        // UC 1.1 - Create User Account
         public async Task<ServiceResult<UserResponseDto>> CreateUserAsync(CreateUserDto createDto, int createdByUserId)
         {
             var personnelNumber = await GenerateUniquePersonnelNumberAsync();
@@ -187,7 +183,6 @@ namespace SAPS.DDMS.API.Services
             throw new InvalidOperationException("A unique personnel number could not be generated after multiple attempts.");
         }
 
-        // UC 1.3 - Update User Account
         public async Task<ServiceResult<UserResponseDto>> ResendActivationEmailAsync(int id, int requestedByUserId)
         {
             var user = await _userRepository.GetByIdAsync(id);
@@ -251,7 +246,6 @@ namespace SAPS.DDMS.API.Services
             return ServiceResult<UserResponseDto>.SuccessResult(response, message);
         }
 
-        // UC 1.3 - Update User Account
         public async Task<ServiceResult<bool>> UpdateUserAsync(int id, UpdateUserDto updateDto, int updatedByUserId)
         {
             var user = await _userRepository.GetByIdAsync(id);

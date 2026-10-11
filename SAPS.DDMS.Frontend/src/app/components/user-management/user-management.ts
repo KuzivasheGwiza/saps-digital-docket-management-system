@@ -1,4 +1,3 @@
-// src/app/components/user-management/user-management.ts
 import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -110,7 +109,6 @@ export class UserManagement implements OnInit, OnDestroy {
     this.error = '';
     this.cdr.markForCheck();
     
-    // Load users
     this.userService.getAllUsers()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -129,7 +127,6 @@ export class UserManagement implements OnInit, OnDestroy {
         }
       });
     
-    // Load roles
     this.userService.getRoles()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -148,7 +145,6 @@ export class UserManagement implements OnInit, OnDestroy {
         }
       });
     
-    // Load stations
     this.userService.getStations()
       .pipe(takeUntil(this.destroy$))
       .subscribe({

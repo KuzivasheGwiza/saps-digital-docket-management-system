@@ -1,4 +1,3 @@
-<!-- src/app/components/docket-management/docket-management.html -->
 <div class="docket-management">
     <div class="page-header">
         <div>
@@ -12,7 +11,6 @@
         </div>
     </div>
     
-    <!-- Filters -->
     <div class="filters-bar">
         <div class="search-bar">
             <input type="text" 
@@ -30,7 +28,6 @@
         </div>
     </div>
     
-    <!-- Dockets Table -->
     <div class="dockets-table" *ngIf="!isLoading">
         <table class="data-table">
             <thead>
@@ -128,8 +125,6 @@
                             <button class="btn-icon" type="button" *ngIf="canAccessEvidence" (click)="openEvidenceForDocket(docket)" title="Open evidence for this docket">
                                 <i class="fas fa-box-archive" aria-hidden="true"></i><span>View evidence</span>
                             </button>
-                            <!-- UC 3.4 — Archive Docket (Docket Admin / SysAdmin only, status CLOSED) -->
-                            <!-- UC 8.1 — Record Court Outcome (DSC Supervisor, status CLOSED) -->
                             <button class="btn-icon menu-warning" (click)="closeCase(docket)"
                                     *ngIf="!isDocketAdministrator && canCloseOrReopenDocket && docket.status === 'COURT_OUTCOME_RECORDED'"
                                     title="Close Case">
@@ -987,7 +982,7 @@
     </div>
 </div>
 
-<!-- UC 3.4 — Archive Docket Modal -->
+<!-- Archive docket modal -->
 <div class="modal" [class.show]="showArchiveModal" *ngIf="showArchiveModal && selectedDocket">
     <div class="modal-content">
         <div class="modal-header">
@@ -1015,7 +1010,7 @@
     </div>
 </div>
 
-<!-- UC 8.1 — Record Court Outcome Modal -->
+<!-- Court outcome modal -->
 <div class="modal" [class.show]="showCourtOutcomeModal" *ngIf="showCourtOutcomeModal && selectedDocket">
     <div class="modal-content">
         <div class="modal-header">

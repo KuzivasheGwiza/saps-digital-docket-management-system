@@ -1,4 +1,3 @@
-// src/app/models/user.model.ts
 export interface User {
     userID: number;
     firstName: string;

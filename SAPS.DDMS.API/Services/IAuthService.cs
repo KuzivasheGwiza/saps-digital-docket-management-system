@@ -1,5 +1,4 @@
 ﻿using SAPS.DDMS.API.Models;
-// Services/IAuthService.cs
 using SAPS.DDMS.API.Helpers;
 using SAPS.DDMS.API.Models.DTOs;
 using SAPS.DDMS.API.Repositories;
@@ -60,7 +59,6 @@ namespace SAPS.DDMS.API.Services
                 120);
         }
 
-        // UC 2.1 - Log In
         public async Task<ServiceResult<LoginResponseDto>> LoginAsync(LoginDto loginDto, string ipAddress)
         {
             var user = await FindLoginUserAsync(loginDto.PersonnelNumber);
@@ -246,7 +244,6 @@ namespace SAPS.DDMS.API.Services
             return ServiceResult<LoginResponseDto>.SuccessResult(response, "Login successful");
         }
 
-        // UC 2.2 - Activate Account / Create Password (First time login)
         public async Task<ServiceResult<bool>> ActivateAccountAsync(ActivateAccountDto activateDto)
         {
             if (!PasswordHelper.MeetsComplexityRequirements(activateDto.Password))
@@ -284,7 +281,6 @@ namespace SAPS.DDMS.API.Services
             return ServiceResult<bool>.SuccessResult(true, "Account activated successfully");
         }
 
-        // UC 2.3 - Change Password
         public async Task<ServiceResult<bool>> ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto)
         {
             var user = await _userRepository.GetByIdAsync(userId);

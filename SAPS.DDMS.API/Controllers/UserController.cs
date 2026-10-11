@@ -1,4 +1,3 @@
-﻿// Controllers/UserController.cs
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +30,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 1.2 - Read all users (System Admin only)
+        /// Returns all user accounts to system administrators.
         /// </summary>
         [HttpGet]
         [Authorize(Policy = PermissionCatalog.UsersManage)]
@@ -49,7 +48,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 1.2 - Read user by ID (System Admin only)
+        /// Returns a user account to system administrators.
         /// </summary>
         [HttpGet("{id}")]
         [Authorize(Policy = PermissionCatalog.UsersManage)]
@@ -67,7 +66,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 1.1 - Create user account (System Admin only)
+        /// Creates a user account and activation workflow.
         /// </summary>
         [HttpPost]
         [Authorize(Policy = PermissionCatalog.UsersManage)]
@@ -95,7 +94,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 1.3 - Update user account (System Admin only)
+        /// Updates a user account and records role changes.
         /// </summary>
         [HttpPut("{id}")]
         [Authorize(Policy = PermissionCatalog.UsersManage)]
@@ -257,7 +256,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// Get all roles (for dropdowns)
+        /// Returns roles available for account administration.
         /// </summary>
         [HttpGet("roles")]
         public async Task<IActionResult> GetRoles()
@@ -267,7 +266,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// Get all stations (for dropdowns)
+        /// Returns stations available for account administration.
         /// </summary>
         [HttpGet("stations")]
         public async Task<IActionResult> GetStations()
@@ -512,7 +511,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// Get current user profile
+        /// Returns the current user's profile.
         /// </summary>
         [HttpGet("profile")]
         public async Task<IActionResult> GetProfile()

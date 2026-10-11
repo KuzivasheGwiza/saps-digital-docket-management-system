@@ -1,5 +1,3 @@
-// src/app/components/faq-management/faq-management.ts
-// UC 1.10 Create FAQ | UC 1.11 Update FAQ | UC 1.12 Delete FAQ
 import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -112,7 +110,6 @@ export class FaqManagement implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  // UC 1.10 — Create FAQ
   openCreateModal(): void {
     this.createForm.reset();
     this.showCreateModal = true;
@@ -158,7 +155,6 @@ export class FaqManagement implements OnInit, OnDestroy {
     });
   }
 
-  // UC 1.11 — Update FAQ
   openEditModal(faq: Faq): void {
     this.selectedFaq = faq;
     this.editForm.patchValue({ question: faq.question, answer: faq.answer, isPublished: faq.isPublished });
@@ -206,7 +202,6 @@ export class FaqManagement implements OnInit, OnDestroy {
     });
   }
 
-  // UC 1.12 — Delete FAQ (soft delete)
   openDeleteModal(faq: Faq): void {
     this.selectedFaq = faq;
     this.showDeleteModal = true;

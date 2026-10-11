@@ -1,4 +1,3 @@
-// src/app/models/dashboard.model.ts
 export interface DashboardStats {
     totalDockets: number;
     openDockets: number;

@@ -1,4 +1,3 @@
-/* src/app/components/user-management/user-management.css */
 .user-management {
     padding: 24px;
     max-width: 1400px;
@@ -232,7 +231,6 @@
     cursor: pointer;
 }
 
-/* Add to user-management.css */
 .error-container {
     margin-bottom: 20px;
 }
@@ -474,7 +472,7 @@
   .modal-footer button { flex: 1 1 140px; justify-content: center; }
 }
 
-/* ── Tab & animation fixes ───────────────────────────────────────────── */
+/* Tab motion and interaction states */
 @keyframes fadeUp {
     from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -492,7 +490,7 @@ button:disabled {
     cursor: not-allowed;
 }
 
-/* ── Premium card & table enhancements ────────────────────────────────── */
+/* Card and table refinements */
 .user-management { animation: pageFadeUp .3s ease; }
 @keyframes pageFadeUp { from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);} }
 

@@ -1,4 +1,3 @@
-﻿// Controllers/PersonController.cs
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +27,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 11.2 - Search persons
+        /// Searches people within the user's station access scope.
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> SearchPersons([FromQuery] string? searchTerm = null)
@@ -43,7 +42,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 11.2 - Get person by ID
+        /// Returns a person within the user's station access scope.
         /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPersonById(int id)
@@ -58,7 +57,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 11.1 - Create person details
+        /// Creates a person record after identity validation.
         /// </summary>
         [HttpPost]
         [Authorize(Roles = "System Administrator, CSC Officer, Investigating Officer, DSC Supervisor, Docket Administrator")]
@@ -74,7 +73,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 11.3 - Update person details
+        /// Updates the permitted fields on a person record.
         /// </summary>
         [HttpPut("{id}")]
         [Authorize(Roles = "System Administrator, CSC Officer, Investigating Officer, DSC Supervisor, Docket Administrator")]
@@ -90,7 +89,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 11.5 - Link person to docket
+        /// Links a person to a docket in the same access scope.
         /// </summary>
         [HttpPost("link")]
         [Authorize(Roles = "System Administrator, CSC Officer, Investigating Officer, DSC Supervisor")]
@@ -160,7 +159,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// Get all person roles (for dropdowns)
+        /// Returns the roles a person may hold in a docket.
         /// </summary>
         [HttpGet("roles")]
         public async Task<IActionResult> GetPersonRoles()

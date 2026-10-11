@@ -1,4 +1,3 @@
-// src/app/services/investigation-note.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -25,12 +24,10 @@ export class InvestigationNoteService {
         return this.http.get<any[]>(`${API_URL}/investigation/notes/${noteId}/versions`);
     }
 
-    // UC 4.4 - Archive Investigation Note Request
     requestArchiveNote(noteId: number, reason: string): Observable<any> {
         return this.http.post(`${API_URL}/investigation/notes/${noteId}/archive-request`, { reason });
     }
 
-    // UC 4.5 - Get archive requests (for DSC Supervisor)
     getArchiveRequests(): Observable<any[]> {
         return this.http.get<any[]>(`${API_URL}/investigation/notes/archive-requests`);
     }

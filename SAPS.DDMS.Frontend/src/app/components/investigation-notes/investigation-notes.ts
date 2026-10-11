@@ -1,4 +1,3 @@
-// src/app/components/investigation-notes/investigation-notes.ts
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -48,7 +47,6 @@ export class InvestigationNotes implements OnInit {
   fileValidationMessage = '';
   noteVersions: any[] = [];
 
-  // UC 4.4 — Archive Note Request
   showArchiveRequestModal = false;
   archiveRequestNote: any = null;
   archiveRequestReason = '';
@@ -332,7 +330,6 @@ export class InvestigationNotes implements OnInit {
     });
   }
 
-  // UC 4.4 — Open Archive Request Modal
   openArchiveRequestModal(note: InvestigationNote): void {
     if (!this.canRequestArchiveNote(note)) {
       this.toastr.error('This note cannot be submitted for archive review');

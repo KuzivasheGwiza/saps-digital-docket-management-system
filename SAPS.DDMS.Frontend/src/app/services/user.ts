@@ -1,4 +1,3 @@
-// src/app/services/user.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
@@ -131,7 +130,6 @@ export class UserService {
         return this.http.post(`${API_URL}/user/profile/photo`, formData);
     }
 
-    // UC 2.5 - Update Profile (phone number + notification preferences)
     updateMe(payload: { phoneNumber: string; notificationPreferences?: string }): Observable<any> {
         return this.http.patch(`${API_URL}/user/me`, payload).pipe(
             catchError(error => {

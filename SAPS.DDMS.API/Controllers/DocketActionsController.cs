@@ -344,7 +344,6 @@ namespace SAPS.DDMS.API.Controllers
                 activeTimer.DurationLimit = assignment.InspectionDueAt;
             }
 
-            // Optionally update docket status to UNDER_INVESTIGATION if current mapping exists
             var underInv = await _db.DocketStatuses.FirstOrDefaultAsync(s => s.StatusName == "UNDER_INVESTIGATION");
             if (underInv != null)
             {
@@ -730,7 +729,7 @@ namespace SAPS.DDMS.API.Controllers
             return NoContent();
         }
 
-        // Prosecutor preview (privacy-aware)
+        // Prosecutor preview applies privacy flags before any bundle is generated.
         [HttpGet("api/docket/{docketId}/prosecutor-preview")]
         [Authorize(Roles = "DSC Supervisor")]
         public async Task<IActionResult> ProsecutorPreview(int docketId)
@@ -1401,7 +1400,7 @@ namespace SAPS.DDMS.API.Controllers
             return NoContent();
         }
 
-        // Privacy flag endpoints
+        // Privacy flags
         public class PrivacyFlagDto
         {
             public bool IsPrivate { get; set; }
@@ -1519,7 +1518,7 @@ namespace SAPS.DDMS.API.Controllers
             return Ok(history);
         }
 
-        // ── UC 3.4 — Archive Docket ──────────────────────────────────────────
+        // Docket archiving
         [HttpPatch("api/docket/{docketId}/archive")]
         [Authorize(Roles = "Docket Administrator")]
         public async Task<IActionResult> ArchiveDocket(int docketId)
@@ -1532,7 +1531,7 @@ namespace SAPS.DDMS.API.Controllers
             if (!string.Equals(docket.DocketStatus?.StatusName, "CLOSED", StringComparison.OrdinalIgnoreCase))
                 return BadRequest("Only CLOSED dockets can be archived.");
 
-            // Check all linked investigation notes are Approved or Archived
+            // Archiving is blocked until every investigation note is finalised.
             var pendingNotes = await _db.InvestigationNotes
                 .Where(n => n.FK_InvestigationID == docket.FK_InvestigationID
                     && n.Status != "Approved" && n.Status != "Archived")
@@ -1564,7 +1563,7 @@ namespace SAPS.DDMS.API.Controllers
             return NoContent();
         }
 
-        // ── UC 8.1 — Record Court Outcome ────────────────────────────────────
+        // Court outcomes
         public class CourtOutcomeDto
         {
             public string? Outcome { get; set; }
@@ -1596,7 +1595,6 @@ namespace SAPS.DDMS.API.Controllers
             if (!hasSharedBundle)
                 return BadRequest("A prosecutor bundle must be shared with an assigned prosecutor before a court outcome can be recorded.");
 
-            // Insert CourtAppearance record using ERD table name
             var appearance = new CourtAppearance
             {
                 FK_DocketID = docketId,
@@ -1610,7 +1608,6 @@ namespace SAPS.DDMS.API.Controllers
             };
             await _db.CourtAppearances.AddAsync(appearance);
 
-            // Update docket status to COURT_OUTCOME_RECORDED
             var courtStatus = await _db.DocketStatuses.FirstOrDefaultAsync(s => s.StatusName == "COURT_OUTCOME_RECORDED")
                 ?? await _db.DocketStatuses.FirstOrDefaultAsync(s => s.StatusName == "CLOSED");
 

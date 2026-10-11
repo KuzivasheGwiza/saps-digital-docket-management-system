@@ -98,7 +98,6 @@ namespace SAPS.DDMS.API.Controllers
                 TransferReason = dto.TransferReason
             };
 
-            // update evidence current location & optional capture fields
             evidence.FK_EvidenceLocationID = dto.ToLocationID;
             evidence.SignatureMethod = dto.SignatureMethod ?? evidence.SignatureMethod;
             evidence.PayloadHash = dto.PayloadHash ?? evidence.PayloadHash;

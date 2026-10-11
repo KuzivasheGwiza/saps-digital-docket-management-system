@@ -18,7 +18,7 @@ namespace SAPS.DDMS.API.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ReadAt { get; set; }
         public bool IsEmailSent { get; set; } = false;
-        public bool IsSMSSent { get; set; } = false; // Complexity #7
+        public bool IsSMSSent { get; set; } = false;
 
         [MaxLength(20)]
         public string PriorityLevel { get; set; }

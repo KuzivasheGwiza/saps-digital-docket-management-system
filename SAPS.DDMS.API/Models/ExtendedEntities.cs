@@ -163,7 +163,7 @@ namespace SAPS.DDMS.API.Models
         public int ChangedByUserID { get; set; }
     }
 
-    // Minimal AI logs + extraction/suggestion stubs
+    // Local AI interaction, extraction and suggestion records
     public class AIInteractionLog
     {
         [Key]

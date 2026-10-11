@@ -1,4 +1,3 @@
-﻿// Services/IPersonService.cs
 using SAPS.DDMS.API.Models;
 
 using SAPS.DDMS.API.Repositories;
@@ -37,7 +36,6 @@ namespace SAPS.DDMS.API.Services
             _auditService = auditService;
         }
 
-        // UC 11.2 - Read Person Details
         public async Task<ServiceResult<PersonResponseDto>> GetPersonByIdAsync(int personId, int requestingUserId)
         {
             var requestingUser = await _userRepository.GetByIdAsync(requestingUserId);
@@ -120,7 +118,6 @@ namespace SAPS.DDMS.API.Services
             return ServiceResult<List<PersonResponseDto>>.SuccessResult(response);
         }
 
-        // UC 11.1 - Create Person Details
         public async Task<ServiceResult<PersonResponseDto>> CreatePersonAsync(CreatePersonDto createDto, int createdByUserId)
         {
             if (!TryValidate(createDto, out var validationError))
@@ -130,7 +127,6 @@ namespace SAPS.DDMS.API.Services
             if (createdBy == null)
                 return ServiceResult<PersonResponseDto>.Failure("User not found.");
 
-            // Validate ID number if provided
             var idNumber = NormalizeOptional(createDto.IDNumber);
             if (!string.IsNullOrEmpty(idNumber))
             {
@@ -189,7 +185,6 @@ namespace SAPS.DDMS.API.Services
             return ServiceResult<PersonResponseDto>.SuccessResult(response, "Person created successfully.");
         }
 
-        // UC 11.3 - Update Person Details
         public async Task<ServiceResult<bool>> UpdatePersonAsync(int personId, UpdatePersonDto updateDto, int requestingUserId)
         {
             if (!TryValidate(updateDto, out var validationError))
@@ -213,7 +208,7 @@ namespace SAPS.DDMS.API.Services
             if (!isInScope)
                 return ServiceResult<bool>.Failure("Person not found.");
 
-            // CSC Officer can only update contact details
+            // CSC officers may correct contact details but not identifying information.
             if (requestingUser.Role?.Name == "CSC Officer")
             {
                 person.PhoneNumber = NormalizeOptional(updateDto.PhoneNumber);
@@ -236,7 +231,6 @@ namespace SAPS.DDMS.API.Services
             return ServiceResult<bool>.SuccessResult(true, "Person details updated successfully.");
         }
 
-        // UC 11.5 - Link Person to Docket
         public async Task<ServiceResult<bool>> LinkPersonToDocketAsync(int personId, int docketId, string relationshipRole, int linkedByUserId)
         {
             var linkedBy = await _userRepository.GetByIdAsync(linkedByUserId);

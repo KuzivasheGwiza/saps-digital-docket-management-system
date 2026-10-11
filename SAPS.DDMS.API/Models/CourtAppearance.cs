@@ -1,4 +1,3 @@
-// CourtAppearance.cs — ERD entity, UC 8.1 Record Court Outcome
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -36,7 +35,6 @@ namespace SAPS.DDMS.API.Models
         [MaxLength(1000)]
         public string? Notes { get; set; }
 
-        // FK to Docket
         public int FK_DocketID { get; set; }
 
         [ForeignKey(nameof(FK_DocketID))]

@@ -1,5 +1,4 @@
 ﻿using SAPS.DDMS.API.Models;
-// Models/NoteAttachment.cs - ADD missing properties
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

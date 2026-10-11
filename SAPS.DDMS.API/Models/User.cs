@@ -82,9 +82,7 @@ namespace SAPS.DDMS.API.Models
         public virtual ICollection<InvestigationAssignment> InvestigationAssignments { get; set; } = new List<InvestigationAssignment>();
         public virtual ICollection<Docket> Dockets { get; set; } = new List<Docket>();
         public virtual ICollection<InvestigationNote> InvestigationNotes { get; set; } = new List<InvestigationNote>();
-        // Add this line to your User.cs
         public virtual ICollection<NoteAttachment> NoteAttachments { get; set; } = new List<NoteAttachment>();
-        // Add this to User.cs
         public virtual ICollection<NoteVersion> NoteVersions { get; set; } = new HashSet<NoteVersion>();
         public virtual ICollection<Evidence> Evidences { get; set; } = new HashSet<Evidence>();
         public virtual ICollection<UserPasswordHistory> PasswordHistory { get; set; } = new List<UserPasswordHistory>();

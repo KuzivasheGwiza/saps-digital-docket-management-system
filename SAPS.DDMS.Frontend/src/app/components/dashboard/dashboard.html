@@ -1,6 +1,4 @@
-<!-- src/app/components/dashboard/dashboard.html -->
 <div class="dashboard">
-    <!-- Welcome Section -->
     <div class="welcome-section">
         <div class="welcome-text">
             <h1>Welcome back, {{ currentUser?.firstName }} {{ currentUser?.lastName }}</h1>
@@ -29,7 +27,6 @@
     </section>
 
     <ng-container *ngIf="!isSystemAdministrator">
-    <!-- Stats Cards -->
     <div class="stats-grid" *ngIf="stats">
         <div class="stat-card stagger-1">
             <div class="stat-icon total">
@@ -101,7 +98,6 @@
         </div>
     </div>
     
-    <!-- Charts Row -->
     <div class="charts-row" *ngIf="stats">
         <div class="chart-card">
             <h2><i class="fas fa-chart-column"></i> Dockets by Status</h2>
@@ -117,7 +113,6 @@
         </div>
     </div>
     
-    <!-- Recent Dockets -->
     <div class="recent-dockets">
         <div class="section-header">
             <h2>Recent Dockets</h2>
@@ -161,7 +156,6 @@
         </div>
     </div>
     
-    <!-- Quick Actions -->
     <div class="quick-actions" *ngIf="currentUser?.roleName === 'CSC Officer'">
         <h2>Quick Actions</h2>
         <div class="action-buttons">

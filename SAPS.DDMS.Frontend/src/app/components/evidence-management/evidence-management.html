@@ -1,4 +1,3 @@
-<!-- src/app/components/evidence-management/evidence-management.html -->
 <div class="evidence-management">
     <div class="page-header">
         <div>
@@ -15,7 +14,6 @@
         </div>
     </div>
     
-    <!-- Docket Selector -->
     <div class="docket-selector">
         <label for="selectedDocketId">Select Docket:</label>
         <select id="selectedDocketId" title="Select Docket" [(ngModel)]="selectedDocketId" (change)="onDocketChange()">
@@ -40,7 +38,6 @@
         <p class="summary-description">{{ selectedDocket.docketSummary || 'No docket summary captured for this file yet.' }}</p>
     </section>
     
-    <!-- Evidence List -->
     <div class="evidence-list" *ngIf="selectedDocketId && !isLoading">
         <div class="evidence-grid" *ngIf="evidenceList.length > 0">
             <div class="evidence-card" *ngFor="let evidence of evidenceList">

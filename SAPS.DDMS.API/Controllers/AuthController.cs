@@ -1,5 +1,4 @@
-﻿// Controllers/AuthController.cs
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SAPS.DDMS.API.Models.DTOs;
 using SAPS.DDMS.API.Services;
@@ -19,7 +18,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 2.1 - Log In
+        /// Authenticates a user and starts two-factor verification when required.
         /// </summary>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
@@ -113,7 +112,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 2.2 - Activate Account / Create Password (First time login)
+        /// Activates a first-time account and creates its password.
         /// </summary>
         [HttpPost("activate")]
         public async Task<IActionResult> ActivateAccount([FromBody] ActivateAccountDto activateDto)
@@ -127,7 +126,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 2.3 - Change Password
+        /// Changes the current user's password.
         /// </summary>
         [Authorize]
         [HttpPost("change-password")]
@@ -143,7 +142,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// Forgot Password - sends a six-digit reset PIN to email
+        /// Sends a six-digit password-reset PIN to the account email address.
         /// </summary>
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto forgotPasswordDto)
@@ -157,7 +156,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// Reset Password with token
+        /// Resets a password after the supplied token is validated.
         /// </summary>
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
@@ -174,7 +173,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// Logout
+        /// Invalidates the current authenticated session.
         /// </summary>
         [Authorize]
         [HttpPost("logout")]

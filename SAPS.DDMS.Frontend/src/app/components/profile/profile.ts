@@ -1,4 +1,3 @@
-// src/app/components/profile/profile.ts
 import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -36,7 +35,6 @@ export class Profile implements OnInit, OnDestroy {
   isStartingCamera = false;
   private cameraStream: MediaStream | null = null;
 
-  // UC 2.5 — Update Profile form (editable fields only)
   profileForm: FormGroup;
 
   constructor() {
@@ -211,7 +209,6 @@ export class Profile implements OnInit, OnDestroy {
       this.userService.getProfile().subscribe({
         next: (user) => {
           this.user = user;
-          // Pre-populate editable fields
           this.profileForm.patchValue({
             phoneNumber: user.phoneNumber || '',
             notificationPreferences: user.notificationPreferences || 'InApp'
@@ -232,11 +229,9 @@ export class Profile implements OnInit, OnDestroy {
     }
   }
 
-  // UC 2.5 — Toggle edit mode
   toggleEdit(): void {
     this.isEditing = !this.isEditing;
     if (!this.isEditing && this.user) {
-      // Reset to current values on cancel
       this.profileForm.patchValue({
         phoneNumber: this.user.phoneNumber || '',
         notificationPreferences: this.user.notificationPreferences || 'InApp'
@@ -244,7 +239,6 @@ export class Profile implements OnInit, OnDestroy {
     }
   }
 
-  // UC 2.5 — Save profile changes
   saveProfile(): void {
     if (this.profileForm.invalid) {
       this.toastr.error('The profile cannot be saved because the phone number must be 10 digits starting with 0, or +27 followed by 9 digits.');

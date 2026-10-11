@@ -29,7 +29,6 @@ namespace SAPS.DDMS.API.Models
         public string? ImagePath { get; set; }
         public string? FileHash { get; set; }
 
-        // Capture fields required by Problem Statement
         [MaxLength(50)]
         public string? SignatureMethod { get; set; }    // "Ink" | "Stylus" | "Smartcard"
         [MaxLength(256)]

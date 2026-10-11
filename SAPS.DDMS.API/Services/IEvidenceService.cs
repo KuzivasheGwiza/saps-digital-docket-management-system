@@ -1,4 +1,3 @@
-﻿// Services/IEvidenceService.cs
 using SAPS.DDMS.API.Helpers;
 using SAPS.DDMS.API.Models;
 using SAPS.DDMS.API.Repositories;
@@ -41,7 +40,6 @@ namespace SAPS.DDMS.API.Services
             _fileStorageService = fileStorageService;
         }
 
-        // UC 5.1 - Create Evidence Item
         public async Task<ServiceResult<EvidenceResponseDto>> CreateEvidenceAsync(CreateEvidenceDto createDto, int registeredByUserId)
         {
             if (!TryValidate(createDto, out var validationError))
@@ -193,7 +191,6 @@ namespace SAPS.DDMS.API.Services
             return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonicalPayload))).ToLowerInvariant();
         }
 
-        // UC 5.2 - Read Evidence Item by ID
         public async Task<ServiceResult<EvidenceResponseDto>> GetEvidenceByIdAsync(int evidenceId, int requestingUserId)
         {
             var evidence = await _evidenceRepository.GetByIdAsync(evidenceId);
@@ -207,9 +204,6 @@ namespace SAPS.DDMS.API.Services
             var docket = await _docketRepository.GetByIdAsync(evidence.FK_DocketID);
             if (docket.FK_StationID != requestingUser.FK_StationID && requestingUser.Role?.Name != "System Administrator")
                 return ServiceResult<EvidenceResponseDto>.Failure("You do not have permission to view this evidence.");
-
-            // Chain of custody removed for I5
-            // var chainOfCustody = await _evidenceRepository.GetChainOfCustodyAsync(evidenceId);
 
             var response = new EvidenceResponseDto
             {
@@ -227,7 +221,6 @@ namespace SAPS.DDMS.API.Services
                 PayloadHash = evidence.PayloadHash,
                 FileHash = evidence.FileHash,
                 ImageUrl = evidence.ImagePath != null ? $"/api/files/evidence/{evidence.EvidenceID}" : null
-                // ChainOfCustodyHistory removed for I5
             };
 
             await _auditService.LogActionAsync("READ_EVIDENCE", "Evidence", evidenceId, null, null, requestingUserId);
@@ -271,7 +264,6 @@ namespace SAPS.DDMS.API.Services
             return ServiceResult<List<EvidenceResponseDto>>.SuccessResult(response);
         }
 
-        // UC 5.3 - Update Evidence Item
         public async Task<ServiceResult<bool>> UpdateEvidenceAsync(int evidenceId, UpdateEvidenceDto updateDto, int requestingUserId)
         {
             if (!TryValidate(updateDto, out var validationError))

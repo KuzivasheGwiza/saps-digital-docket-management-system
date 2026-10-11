@@ -1,4 +1,3 @@
-﻿// Controllers/DocketController.cs
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +22,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 3.2 - Get all dockets (filtered by user role and station)
+        /// Returns the dockets visible to the current user's role and station.
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetDockets([FromQuery] string? status = null)
@@ -38,7 +37,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 3.2 - Get docket by ID
+        /// Returns a docket when it is within the current user's access scope.
         /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetDocketById(int id)
@@ -53,8 +52,8 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 3.1 - Create Docket (with Incident first - business requirement)
-        /// Only CSC Officers can create dockets
+        /// Creates an incident, investigation and docket as one workflow.
+        /// Only CSC Officers can create dockets.
         /// </summary>
         [HttpPost]
         [Authorize(Roles = "CSC Officer")]
@@ -70,8 +69,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 3.3 - Update Docket
-        /// Requires reason for update (min 20 characters)
+        /// Updates a docket and records the required audit reason.
         /// </summary>
         [HttpPut("{id}")]
         [Authorize(Roles = "CSC Officer, Docket Administrator")]
@@ -87,8 +85,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// UC 3.5 - Allocate Docket to Investigating Officer
-        /// Only DSC Supervisors can allocate
+        /// Allocates an open docket to an eligible Investigating Officer.
         /// </summary>
         [HttpPost("{id}/allocate")]
         [Authorize(Roles = "DSC Supervisor")]
@@ -104,7 +101,7 @@ namespace SAPS.DDMS.API.Controllers
         }
 
         /// <summary>
-        /// Get available Investigating Officers for allocation
+        /// Returns officers who are eligible to receive another docket.
         /// </summary>
         [HttpGet("available-officers")]
         [Authorize(Roles = "DSC Supervisor")]

@@ -14,11 +14,9 @@ namespace SAPS.DDMS.API.Models
 
         public DateTime DateAssigned { get; set; } = DateTime.UtcNow;
 
-        // When assignment is accepted by the IO
         public DateTime? DateAccepted { get; set; }
         public DateTime? InspectionDueAt { get; set; }
 
-        // Inspection completion metadata (for DSC Supervisor)
         public DateTime? InspectionCompletedAt { get; set; }
         public string? InspectionNotes { get; set; }
         public int? InspectionCompletedByUserID { get; set; }

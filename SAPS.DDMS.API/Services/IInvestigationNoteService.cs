@@ -1,4 +1,3 @@
-﻿// Services/IInvestigationNoteService.cs
 using SAPS.DDMS.API.Models;
 using SAPS.DDMS.API.Repositories;
 using SAPS.DDMS.API.Services;
@@ -37,7 +36,6 @@ namespace SAPS.DDMS.API.Services
             _db = db;
         }
 
-        // UC 4.1 - Create Investigation Note
         public async Task<ServiceResult<InvestigationNote>> CreateNoteAsync(int investigationId, string description, int authorUserId, IFormFile? attachment)
         {
             var author = await _userRepository.GetByIdAsync(authorUserId);
@@ -83,7 +81,6 @@ namespace SAPS.DDMS.API.Services
 
             await _investigationRepository.CreateNoteAsync(note);
 
-            // Handle file upload (Complexity #11)
             if (attachment != null && attachment.Length > 0)
             {
                 var filePath = await _fileStorageService.SaveFileAsync(attachment, "notes");
@@ -117,7 +114,6 @@ namespace SAPS.DDMS.API.Services
             return ServiceResult<InvestigationNote>.SuccessResult(note, "Investigation note saved successfully.");
         }
 
-        // UC 4.2 - Read Investigation Notes
         public async Task<ServiceResult<List<InvestigationNote>>> GetNotesByInvestigationAsync(int investigationId, int requestingUserId)
         {
             var user = await _userRepository.GetByIdAsync(requestingUserId);
@@ -141,7 +137,6 @@ namespace SAPS.DDMS.API.Services
             return ServiceResult<List<InvestigationNote>>.SuccessResult(notes);
         }
 
-        // UC 4.3 - Update Investigation Note (with version history)
         public async Task<ServiceResult<InvestigationNote>> UpdateNoteAsync(int noteId, string newDescription, string reason, int requestingUserId)
         {
             var requestingUser = await _userRepository.GetByIdAsync(requestingUserId);
@@ -178,11 +173,11 @@ namespace SAPS.DDMS.API.Services
             if (string.IsNullOrWhiteSpace(reason) || reason.Length < 10)
                 return ServiceResult<InvestigationNote>.Failure("A reason of at least 10 characters is required for note edits.");
 
-            // Get existing versions to calculate next version number
             var existingVersions = await _investigationRepository.GetNoteVersionsAsync(noteId);
             var nextVersion = existingVersions.Count + 1;
 
-            // Save version history (immutable - preserves original text)
+            // Preserve the before-and-after values in the same transaction as the
+            // edit so a note can never change without a matching version record.
             var version = new NoteVersion
             {
                 VersionNumber = nextVersion,
@@ -197,7 +192,6 @@ namespace SAPS.DDMS.API.Services
             await using var transaction = await _db.Database.BeginTransactionAsync();
             await _investigationRepository.AddNoteVersionAsync(version);
 
-            // Update note
             note.Description = normalizedDescription;
             await _investigationRepository.UpdateNoteAsync(note);
 
