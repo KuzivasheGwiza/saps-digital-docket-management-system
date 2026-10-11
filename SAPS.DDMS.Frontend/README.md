@@ -39,7 +39,7 @@ The client solves two usability problems: operational users should see only the 
 
 ## My contribution
 
-I served as the project's main coder and personally completed the full-stack development, including the frontend and its integration with the API and database. On the client application, I developed the role-aware screens, docket reassignment and sensitivity controls, report presentation, editable station tree, court and identity validation feedback, inactivity handling, backup/restore experience, responsive navigation, and automated component and service tests.
+I personally coded the entire system, including the frontend and its integration with the API and database. On the client application, I developed the role-aware screens, docket reassignment and sensitivity controls, report presentation, editable station tree, court and identity validation feedback, inactivity handling, backup/restore experience, responsive navigation, and automated component and service tests.
 
 ## Setup
 

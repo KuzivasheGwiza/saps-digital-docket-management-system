@@ -53,7 +53,7 @@ The screenshots use demonstration accounts and contain no operational docket or 
 
 ## My contribution
 
-Although this was presented as a group project, I served as the main coder and personally completed the full-stack development. I was responsible for the frontend, backend API, database integration, automated testing, debugging, and portfolio-ready delivery. My work included:
+Although this was presented as a group project, I personally coded the entire system. I completed the frontend, backend API, database design and integration, automated testing, debugging, and portfolio-ready delivery. My work included:
 
 - Implementing reliable full backup creation and transactional restore, including managed uploads and session invalidation
 - Refining docket allocation, reassignment, unallocation, rejected-docket restrictions, and sensitivity handling

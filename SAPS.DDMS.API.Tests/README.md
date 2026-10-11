@@ -33,7 +33,7 @@ The test project has no standalone user interface. It validates the API behavior
 
 ## My contribution
 
-As the project's main coder, I was responsible for the full-stack implementation and its automated verification. I created and maintained regression coverage for authentication, authorization, person management, prosecutor bundles, court outcomes, and server-side validation. These tests provide fast feedback without requiring operational records.
+I personally coded the entire system and its automated verification. I created and maintained regression coverage for authentication, authorization, person management, prosecutor bundles, court outcomes, and server-side validation. These tests provide fast feedback without requiring operational records.
 
 ## Setup and execution
 
