@@ -44,7 +44,7 @@ The API powers the role-based reports interface shown below:
 
 ## My contribution
 
-My backend work focused on workflow integrity and operational reliability. I implemented or refined transactional backup/restore, assignment and reassignment rules, sensitivity handling, court/date/identity validation, configurable archive and session policies, report queries, authorization boundaries, audit recording, and related regression tests.
+I served as the project's main coder and personally completed the full-stack development, including the backend architecture and its integration with the frontend and database. On the API, I implemented or refined transactional backup/restore, assignment and reassignment rules, sensitivity handling, court/date/identity validation, configurable archive and session policies, report queries, authorization boundaries, audit recording, and related regression tests.
 
 ## Setup
 
