@@ -16,15 +16,39 @@ The client solves two usability problems: operational users should see only the 
 - Administration for users, roles, system settings, audit history, SMS queue, and backup/restore
 - Responsive navigation, form validation, accessible dialogs, loading states, and API error feedback
 
-## Screenshots
+## Screenshot gallery
 
-| Sign-in | Docket management |
-| --- | --- |
-| ![Sign-in screen](../docs/images/login.png) | ![Docket management](../docs/images/docket-management.png) |
+These screenshots were captured from the running application. Captions identify the workflow and, where relevant, the user role shown.
 
-| Reports | Mobile navigation |
+### Secure access and administration
+
+| Sign-in | System Administrator dashboard |
 | --- | --- |
-| <img src="../docs/images/reports.png" alt="Reports dashboard" width="680"> | <img src="../docs/images/responsive-navigation.png" alt="Responsive navigation" width="260"> |
+| ![Sign-in form with personnel number or email and password](../docs/images/login.png) | ![System Administrator dashboard with administration shortcuts](../docs/images/admin-dashboard.png) |
+
+| User management | Station hierarchy |
+| --- | --- |
+| ![User Management table in the System Administrator account](../docs/images/user-management.png) | ![Province, city and station hierarchy in the System Administrator account](../docs/images/station-hierarchy.png) |
+
+### Docket intake and allocation
+
+| Create docket: classifications | Create docket: address search and map |
+| --- | --- |
+| ![Case type, sensitivity and incident fields in the Create New Docket form](../docs/images/create-docket-incident.png) | ![Address search and interactive map picker in the Create New Docket form](../docs/images/create-docket-location.png) |
+
+| Create docket: narrative and complainant | DSC Supervisor docket actions |
+| --- | --- |
+| ![Docket summary, modus operandi and complainant fields](../docs/images/create-docket-complainant.png) | ![Docket list with allocation action menu in the DSC Supervisor account](../docs/images/docket-management.png) |
+
+### People, evidence and prosecutor workflow
+
+| Person management | Evidence management |
+| --- | --- |
+| ![Person Management table with linked-person actions](../docs/images/person-management.png) | ![Investigating Officer evidence page with a selected docket](../docs/images/evidence-management.png) |
+
+![Prosecutor bundle list with privacy controls and Preview and Share action](../docs/images/prosecutor-bundle.png)
+
+*Prosecutor bundle management in the DSC Supervisor workflow.*
 
 ## Technologies
 

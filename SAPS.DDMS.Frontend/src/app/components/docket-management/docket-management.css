@@ -285,10 +285,8 @@ h4 {
 
 .dockets-table tbody td { padding: 12px 14px; font-size: 13px; }
 
-/* Long workflow names such as PENDING_PROSECUTOR must never spill into the
-   Allocation column.  The table can scroll horizontally on smaller screens. */
-.dockets-table .status-column,
-.dockets-table .status-cell { min-width: 205px; }
+/* Reserve a real table column for workflow states without displacing Allocation. */
+.dockets-table .status-column { width: 15%; }
 
 .docket-management .status-pending {
     align-items: center;

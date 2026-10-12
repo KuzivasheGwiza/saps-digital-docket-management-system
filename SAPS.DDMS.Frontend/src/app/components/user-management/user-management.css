@@ -54,16 +54,22 @@
 .search-bar input {
     width: 100%;
     min-height: 42px;
-    padding: 10px 16px 10px 42px;
+    padding: 10px 16px 10px 46px;
     box-sizing: border-box;
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 14px;
 }
 
+/* The global form rule resets input padding with !important. Keep enough
+   space for the search icon even after that rule is applied. */
+.user-management .search-bar input {
+    padding-left: 46px !important;
+}
+
 .search-bar i {
     position: absolute;
-    left: 15px;
+    left: 16px;
     top: 50%;
     transform: translateY(-50%);
     color: #999;

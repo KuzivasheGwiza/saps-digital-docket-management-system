@@ -1,0 +1,58 @@
+<button
+  #helpButton
+  type="button"
+  class="floating-help-button"
+  [attr.aria-label]="'Open help for ' + guide.title"
+  [attr.aria-expanded]="isOpen"
+  aria-controls="context-help-panel"
+  (click)="open()">
+  <span class="help-mark" aria-hidden="true">?</span>
+  <span>Help</span>
+</button>
+
+<div class="context-help-backdrop" *ngIf="isOpen" (click)="close()" aria-hidden="true"></div>
+<aside
+  #helpPanel
+  *ngIf="isOpen"
+  id="context-help-panel"
+  class="context-help-panel"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="context-help-title"
+  aria-describedby="context-help-purpose"
+  (keydown)="onPanelKeydown($event)">
+  <header class="context-help-header">
+    <div>
+      <span class="context-help-eyebrow">Page guidance</span>
+      <h2 id="context-help-title">Help: {{ guide.title }}</h2>
+    </div>
+    <button #closeButton type="button" class="context-help-close" (click)="close()" aria-label="Close page help">
+      <i class="fas fa-xmark" aria-hidden="true"></i>
+    </button>
+  </header>
+  <div #panelScroll class="context-help-scroll">
+    <p id="context-help-purpose" class="context-help-purpose">{{ guide.purpose }}</p>
+
+    <section *ngIf="guide.steps.length" aria-labelledby="context-help-steps">
+      <h3 id="context-help-steps">What to do</h3>
+      <ol class="context-help-steps">
+        <li *ngFor="let step of guide.steps">{{ step }}</li>
+      </ol>
+    </section>
+
+    <section *ngIf="guide.controls.length" aria-labelledby="context-help-controls">
+      <h3 id="context-help-controls">Fields and controls</h3>
+      <ul><li *ngFor="let item of guide.controls">{{ item }}</li></ul>
+    </section>
+
+    <section *ngIf="guide.requirements.length" aria-labelledby="context-help-requirements">
+      <h3 id="context-help-requirements">Required information</h3>
+      <ul><li *ngFor="let item of guide.requirements">{{ item }}</li></ul>
+    </section>
+
+    <section *ngIf="guide.tips.length" aria-labelledby="context-help-tips">
+      <h3 id="context-help-tips">Good to know</h3>
+      <ul><li *ngFor="let item of guide.tips">{{ item }}</li></ul>
+    </section>
+  </div>
+</aside>

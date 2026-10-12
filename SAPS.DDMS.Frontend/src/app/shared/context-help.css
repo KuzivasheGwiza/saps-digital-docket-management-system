@@ -1,0 +1,120 @@
+:host { display: contents; }
+
+.floating-help-button {
+  position: fixed;
+  right: max(24px, env(safe-area-inset-right));
+  bottom: max(24px, env(safe-area-inset-bottom));
+  z-index: 1450;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 7px 18px 7px 9px;
+  border: 1px solid #e3b54a;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #123a63, #0b2747);
+  box-shadow: 0 12px 28px rgba(3, 17, 32, .25);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 750;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.floating-help-button:hover { transform: translateY(-2px); box-shadow: 0 16px 32px rgba(3, 17, 32, .3); }
+.floating-help-button:focus-visible,
+.context-help-close:focus-visible { outline: 3px solid #e9b843; outline-offset: 3px; }
+.help-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #f2c654;
+  color: #0b2747;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.context-help-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1600;
+  background: rgba(3, 17, 32, .43);
+}
+
+.context-help-panel {
+  position: fixed;
+  inset: 0 0 0 auto;
+  z-index: 1601;
+  display: flex;
+  flex-direction: column;
+  width: min(440px, 100vw);
+  height: 100dvh;
+  background: #fff;
+  box-shadow: -18px 0 48px rgba(3, 17, 32, .23);
+}
+
+.context-help-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 25px 24px 22px;
+  border-top: 4px solid #d6a22a;
+  background: linear-gradient(145deg, #123a63, #0b2747);
+  color: #fff;
+}
+
+.context-help-eyebrow {
+  color: #f2c654;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.context-help-header h2 { margin: 7px 0 0; color: #fff; font-size: 22px; line-height: 1.25; }
+.context-help-close {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, .35);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .08);
+  color: #fff;
+  cursor: pointer;
+}
+.context-help-close:hover { background: rgba(255, 255, 255, .2); }
+
+.context-help-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 24px 28px max(30px, env(safe-area-inset-bottom));
+}
+.context-help-purpose { margin: 0 0 26px; color: #344f68; font-size: 15px; line-height: 1.6; }
+.context-help-scroll section { border-top: 1px solid #e3eaf0; padding: 20px 0; }
+.context-help-scroll h3 { margin: 0 0 14px; color: #102a43; font-size: 15px; font-weight: 800; }
+.context-help-scroll ol,
+.context-help-scroll ul { margin: 0; padding-left: 23px; color: #40576d; font-size: 14px; line-height: 1.6; }
+.context-help-scroll li { padding-left: 5px; margin-bottom: 11px; overflow-wrap: anywhere; }
+.context-help-scroll li:last-child { margin-bottom: 0; }
+.context-help-steps li::marker { color: #0b5cad; font-weight: 800; }
+
+@media (max-width: 600px) {
+  .floating-help-button {
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(80px, calc(env(safe-area-inset-bottom) + 16px));
+    min-height: 44px;
+    padding-right: 14px;
+  }
+  .context-help-header { padding: 20px 18px; }
+  .context-help-header h2 { font-size: 19px; }
+  .context-help-scroll { padding: 20px 20px max(24px, env(safe-area-inset-bottom)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-help-button { transition: none; }
+}

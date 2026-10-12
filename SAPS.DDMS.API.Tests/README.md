@@ -27,9 +27,9 @@ The current suite contains 21 passing backend tests across the use-case test cla
 
 ## Screenshots
 
-The test project has no standalone user interface. It validates the API behavior behind application workflows such as the docket-management screen below.
+The test project has no standalone user interface. It validates API behavior behind workflows such as the DSC Supervisor docket actions shown below; this screenshot is application context, not test output.
 
-![Docket management workflow validated by the backend tests](../docs/images/docket-management.png)
+![DSC Supervisor docket list and allocation action menu](../docs/images/docket-management.png)
 
 ## My contribution
 

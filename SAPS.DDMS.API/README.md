@@ -38,9 +38,11 @@ This project is the ASP.NET Core backend for SAPS DDMS. It centralizes operation
 
 ## Screenshots
 
-The API powers the role-based reports interface shown below:
+The API supplies the docket-linked evidence records and prosecutor-bundle workflow shown in these application screens:
 
-![Reports powered by the SAPS DDMS API](../docs/images/reports.png)
+| Docket-linked evidence | Prosecutor bundle |
+| --- | --- |
+| ![Evidence records returned for a selected docket](../docs/images/evidence-management.png) | ![Shared and draft prosecutor bundles with export and sharing actions](../docs/images/prosecutor-bundle.png) |
 
 ## My contribution
 

@@ -1,7 +1,7 @@
 <div class="help-page">
   <div class="help-header">
     <div>
-      <h1>SAPS DDMS Help</h1>
+      <h1>SAPS DDMS Help Centre</h1>
       <p>Searchable help for the current system workflows.</p>
     </div>
     <a class="btn-secondary" routerLink="/dashboard" title="Return to dashboard">
@@ -47,17 +47,26 @@
     </section>
   </div>
 
-  <section class="topic-detail" *ngIf="filteredFaqs.length">
-    <div class="topic-meta">
-      <span>FAQ</span>
-      <strong>{{ filteredFaqs.length }} available</strong>
-    </div>
-    <h2>Frequently Asked Questions</h2>
-    <div class="faq-list">
-      <details *ngFor="let faq of filteredFaqs">
-        <summary>{{ faq.question }}</summary>
-        <p>{{ faq.answer }}</p>
-      </details>
+  <section class="faq-section" *ngIf="filteredFaqs.length" aria-labelledby="faq-heading">
+    <div class="faq-inner">
+      <div class="faq-heading">
+        <div>
+          <span class="faq-eyebrow">Help centre</span>
+          <h2 id="faq-heading">Frequently Asked Questions</h2>
+          <p>Find quick answers to common SAPS DDMS tasks.</p>
+        </div>
+        <span class="faq-count">{{ filteredFaqs.length }} {{ filteredFaqs.length === 1 ? 'question' : 'questions' }}</span>
+      </div>
+      <div class="faq-list">
+        <details class="faq-item" *ngFor="let faq of filteredFaqs">
+          <summary>
+            <span class="faq-icon" aria-hidden="true"><i class="far fa-circle-question"></i></span>
+            <span class="faq-question">{{ faq.question }}</span>
+            <span class="faq-chevron" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
+          </summary>
+          <div class="faq-answer">{{ faq.answer }}</div>
+        </details>
+      </div>
     </div>
   </section>
 

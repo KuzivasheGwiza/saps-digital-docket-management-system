@@ -53,7 +53,7 @@
                 </div>
 
                 <a routerLink="/faq-management" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="fas fa-circle-question" aria-hidden="true"></i>FAQs</a>
-                <a [routerLink]="['/help']" [queryParams]="{ topic: getHelpTopic() }" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="fas fa-circle-info" aria-hidden="true"></i>Help</a>
+                <a routerLink="/help" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="fas fa-circle-info" aria-hidden="true"></i>Help Centre</a>
                 <a routerLink="/feedback" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="fas fa-comments" aria-hidden="true"></i>Feedback</a>
             </div>
 
@@ -120,12 +120,10 @@
             <span class="breadcrumb-separator" aria-hidden="true">/</span>
             <span aria-current="page">{{ getBreadcrumbLabel() }}</span>
         </nav>
-        <a class="context-help-link" [routerLink]="['/help']" [queryParams]="{ topic: getHelpTopic() }" [attr.aria-label]="'Help for ' + getBreadcrumbLabel()">
-            <i class="fas fa-circle-question" aria-hidden="true"></i>
-            Help for this page
-        </a>
     </div>
 </div>
 
 <router-outlet></router-outlet>
+<div class="floating-help-clearance" *ngIf="shouldShowShell()" aria-hidden="true"></div>
+<app-context-help></app-context-help>
 <app-dialog></app-dialog>

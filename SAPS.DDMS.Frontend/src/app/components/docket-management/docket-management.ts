@@ -1265,6 +1265,10 @@ export class DocketManagement implements OnInit, OnDestroy {
     return statusMap[status] || 'status-default';
   }
 
+  getStatusDisplayLabel(status: string): string {
+    return status.toLowerCase().replace(/_/g, ' ').replace(/\b[a-z]/g, letter => letter.toUpperCase());
+  }
+
   isAwaitingOfficerResponse(docket: Docket): boolean {
     return docket.status === 'ALLOCATED'
       && !docket.assignmentAcceptedAt

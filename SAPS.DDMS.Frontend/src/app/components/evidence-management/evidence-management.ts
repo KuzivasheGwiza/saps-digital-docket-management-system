@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { EvidenceService } from '../../services/evidence';
 import { DocketService } from '../../services/docket';
@@ -33,7 +33,7 @@ const ALLOWED_EVIDENCE_FILE_TYPES = new Set([
 @Component({
   selector: 'app-evidence-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './evidence-management.html',
   styleUrls: ['./evidence-management.css']
 })

@@ -5,9 +5,6 @@
             <p class="page-subtitle">Capture evidence against the correct docket with structured collection methods, item states and retention details.</p>
         </div>
         <div class="page-header-actions">
-            <a class="btn-secondary" [routerLink]="['/help']" [queryParams]="{ topic: 'evidence' }">
-                <i class="fas fa-circle-info"></i> Evidence Help
-            </a>
             <button class="btn-primary" (click)="openCreateModal()" *ngIf="canCreateEvidence && selectedDocketId">
                 <i class="fas fa-plus"></i> Add Evidence
             </button>

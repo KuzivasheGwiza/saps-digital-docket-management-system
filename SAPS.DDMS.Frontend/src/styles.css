@@ -1209,8 +1209,8 @@ body .error-message {
 .docket-management .status-closed { background: #e9eef3; color: #475569; }
 .docket-management .status-reopened { background: #fff0d5; color: #965b08; }
 .docket-management .status-complete { background: #e3f5ea; color: #227044; }
-.docket-management [class^="status-"],
-.docket-management [class*=" status-"] {
+.docket-management span[class^="status-"],
+.docket-management span[class*=" status-"] {
     align-items: center;
     display: inline-flex;
     line-height: 1.3;

@@ -53,7 +53,7 @@
                         <div class="reference-stack"><span><small>OB</small>{{ docket.obReferenceNumber }}</span><span><small>FIC</small>{{ docket.ficReferenceNumber || '—' }}</span></div>
                     </td>
                     <td class="status-cell" data-label="Status">
-                        <span [class]="getStatusBadgeClass(docket.status)">{{ docket.status }}</span>
+                        <span [class]="getStatusBadgeClass(docket.status)">{{ getStatusDisplayLabel(docket.status) }}</span>
                     </td>
                     <td data-label="Allocation">
                         <div class="allocation-state" *ngIf="docket.allocationReviewStatus; else unallocatedState">

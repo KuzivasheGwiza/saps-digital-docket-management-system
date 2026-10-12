@@ -29,15 +29,23 @@ The solution contains three projects:
 
 ## Screenshots
 
-| Secure sign-in | Reports dashboard |
+| Secure sign-in | System Administrator dashboard |
 | --- | --- |
-| ![SAPS DDMS sign-in screen](docs/images/login.png) | ![SAPS DDMS reports dashboard](docs/images/reports.png) |
+| ![SAPS DDMS sign-in screen](docs/images/login.png) | ![System Administrator dashboard](docs/images/admin-dashboard.png) |
 
-| Docket management | Responsive navigation |
+| Docket location picker | Docket actions and allocation |
 | --- | --- |
-| <img src="docs/images/docket-management.png" alt="SAPS DDMS docket management screen" width="680"> | <img src="docs/images/responsive-navigation.png" alt="SAPS DDMS mobile navigation" width="260"> |
+| ![Interactive map in the Create New Docket form](docs/images/create-docket-location.png) | ![DSC Supervisor docket actions and allocation](docs/images/docket-management.png) |
 
-The screenshots use demonstration accounts and contain no operational docket or evidence data.
+| Evidence management | Prosecutor bundles |
+| --- | --- |
+| ![Investigating Officer evidence management screen](docs/images/evidence-management.png) | ![Prosecutor bundle management and sharing actions](docs/images/prosecutor-bundle.png) |
+
+| User management | Station hierarchy |
+| --- | --- |
+| ![System Administrator user management screen](docs/images/user-management.png) | ![Province, city and station hierarchy](docs/images/station-hierarchy.png) |
+
+See the [frontend screenshot gallery](SAPS.DDMS.Frontend/README.md#screenshot-gallery) for the full docket-creation sequence and person management. Visible names, personnel identifiers, and contact details have been covered in these captures. They show the application interface, not a production deployment; review the remaining case content before publishing the repository.
 
 ## Technologies
 

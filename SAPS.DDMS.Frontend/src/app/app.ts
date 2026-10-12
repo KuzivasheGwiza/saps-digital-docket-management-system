@@ -6,11 +6,12 @@ import { AuthService } from './services/auth';
 import { NotificationService } from './services/notification';
 import { hasAnyRole, hasPermission, PERMISSIONS, ROUTE_ROLES, ROLES } from './security/role-policy';
 import { AppDialog } from './shared/app-dialog';
+import { ContextHelp } from './shared/context-help';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterModule, AppDialog],
+  imports: [CommonModule, RouterModule, AppDialog, ContextHelp],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
@@ -201,36 +202,6 @@ export class AppComponent implements OnInit, OnDestroy {
     ].some(route => path === route || path.startsWith(`${route}/`));
   }
 
-  getHelpTopic(): string {
-    const url = this.router.url.split(/[?#]/)[0];
-    if (url === '/dockets/create') return 'create-docket';
-    if (/^\/dockets\/[^/]+$/.test(url)) return 'docket-details';
-    if (url === '/persons/create') return 'register-person';
-    if (/^\/users\/[^/]+$/.test(url)) return 'user-details';
-    if (url === '/evidence-register') return 'evidence-register';
-    if (url === '/system-calendar') return 'system-calendar';
-    if (url === '/change-password') return 'change-password';
-    if (url.includes('/users')) return 'users';
-    if (url.includes('/roles')) return 'roles';
-    if (url.includes('/faq-management')) return 'faq';
-    if (url.includes('/reports')) return 'reports';
-    if (url.includes('/calendar')) return 'calendar';
-    if (url.includes('/sms-queue')) return 'sms';
-    if (url.includes('/data-exchange')) return 'data-exchange';
-    if (url.includes('/dockets')) return 'dockets';
-    if (url.includes('/evidence')) return 'evidence';
-    if (url.includes('/investigation')) return 'investigation';
-    if (url.includes('/persons')) return 'persons';
-    if (url.includes('/feedback')) return 'feedback';
-    if (url.includes('/station-tree')) return 'stations';
-    if (url.includes('/ai-log')) return 'ai';
-    if (url.includes('/system-config')) return 'configuration';
-    if (url.includes('/backup')) return 'backup';
-    if (url.includes('/audit-log')) return 'audit';
-    if (url.includes('/profile')) return 'profile';
-    return 'dashboard';
-  }
-
   getBreadcrumbLabel(): string {
     const url = this.router.url.split(/[?#]/)[0];
 
@@ -260,7 +231,7 @@ export class AppComponent implements OnInit, OnDestroy {
       ['/persons', 'Persons'],
       ['/backup', 'Backup & Restore'],
       ['/users', 'User Management'],
-      ['/help', 'Help'],
+      ['/help', 'Help Centre'],
       ['/feedback', 'Feedback'],
       ['/dashboard', 'Dashboard']
     ];

@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
 import { AuditLogFilters, AuditService } from '../../services/audit';
 
 interface AuditUserOption {
@@ -12,7 +11,7 @@ interface AuditUserOption {
 @Component({
   selector: 'app-audit-log',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './audit-log.html',
   styleUrls: ['./audit-log.css']
 })

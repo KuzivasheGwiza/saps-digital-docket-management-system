@@ -2,6 +2,8 @@
   display: block;
 }
 
+.floating-help-clearance { height: 88px; }
+
 .navbar {
   position: sticky;
   top: 0;
@@ -431,25 +433,10 @@
   font-size: 12px;
 }
 
-.breadcrumb-trail,
-.context-help-link {
+.breadcrumb-trail {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-}
-
-.context-help-link {
-  flex: 0 0 auto;
-  min-height: 30px;
-  padding: 4px 10px;
-  border: 1px solid #c8d7e6;
-  border-radius: 8px;
-  background: #fff;
-}
-
-.context-help-link:hover {
-  border-color: #0b5cad;
-  text-decoration: none !important;
 }
 
 .breadcrumb-container a {

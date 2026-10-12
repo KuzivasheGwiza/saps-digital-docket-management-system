@@ -136,6 +136,11 @@ describe('DocketManagement — core docket workflows', () => {
     expect(component.statusOptions).toEqual(['ALL', 'ALLOCATED', 'CLOSED', 'OPEN']);
   });
 
+  it('shows workflow status codes as readable table labels', () => {
+    expect(component.getStatusDisplayLabel('PENDING_PROSECUTOR')).toBe('Pending Prosecutor');
+    expect(component.getStatusDisplayLabel('UNDER_INVESTIGATION')).toBe('Under Investigation');
+  });
+
   it('shows docket-linked Notes and Evidence without the redundant Records action', () => {
     (component as any).roleName = 'DSC Supervisor';
     component.canAccessNotes = true;
