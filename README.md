@@ -61,7 +61,7 @@ See the [frontend screenshot gallery](SAPS.DDMS.Frontend/README.md#screenshot-ga
 
 ## My contribution
 
-Although this was presented as a group project, I personally coded the entire system. I completed the frontend, backend API, database design and integration, automated testing, debugging, and portfolio-ready delivery. My work included:
+Although this was presented as a group project. I completed the frontend, backend API, database design and integration, automated testing, debugging, and portfolio-ready delivery. My work included:
 
 - Implementing reliable full backup creation and transactional restore, including managed uploads and session invalidation
 - Refining docket allocation, reassignment, unallocation, rejected-docket restrictions, and sensitivity handling
