@@ -1,6 +1,6 @@
 # SAPS Digital Docket Management System
 
-SAPS DDMS is a full-stack case-management platform that replaces fragmented, paper-heavy docket processes with one secure and auditable workflow. It brings docket registration, investigation, evidence, people, court outcomes, reporting, and operational recovery into a role-based web application.
+SAPS DDMS is a University of Pretoria / Boxfusion-collaboration academic capstone prototype exploring a secure, auditable digital alternative to fragmented, paper-heavy docket processes. It brings docket registration, investigation, evidence, people, court outcomes, reporting, and operational recovery into a role-based web application.
 
 > Portfolio project: this repository demonstrates a proposed digital docket solution and is not an official public SAPS service. All demonstration information should be synthetic.
 
@@ -59,17 +59,23 @@ See the [frontend screenshot gallery](SAPS.DDMS.Frontend/README.md#screenshot-ga
 | Testing | xUnit, Vitest, Angular testing utilities, EF Core InMemory |
 | Deployment | Docker Compose, Nginx, environment-based configuration |
 
-## My contribution
+## My contribution — Administration, User and Docket Management
 
-Although this was presented as a group project. I completed the frontend, backend API, database design and integration, automated testing, debugging, and portfolio-ready delivery. My work included:
+This was a **University of Pretoria team capstone developed in collaboration with Boxfusion**. I was the **primary full-stack developer responsible for coding three subsystems** within the larger prototype: **Administration, User and Docket Management**. This does not mean I was the overall technical lead or personally implemented every subsystem.
 
-- Implementing reliable full backup creation and transactional restore, including managed uploads and session invalidation
-- Refining docket allocation, reassignment, unallocation, rejected-docket restrictions, and sensitivity handling
-- Improving crime-trend, docket-status, workload, and transactional reports
-- Adding validation for court dates and date of birth against South African ID numbers
-- Making station-tree data and archive/session policies configurable
-- Improving responsive UI behavior, role-aware navigation, error handling, and demonstration readiness
-- Expanding automated verification and preparing the repository for safe public portfolio use
+| Subsystem | My implementation scope | Documented use cases |
+| --- | --- | ---: |
+| Administration | User account creation, viewing and updates; account deactivation, reactivation, suspension and unlocking; administrative FAQ workflows | 10 |
+| User | Login, password creation/change/recovery, user profile, feedback, logout and FAQ access | 8 |
+| Docket Management | Docket creation, retrieval, updates, archival, allocation and allocation review | 6 |
+
+Together, these areas cover **24 use cases in the team's specification**. This count describes documented functional scope; it is not a claim that all 24 use cases were separately tested or deployed in production.
+
+I developed Angular / TypeScript interfaces and ASP.NET Core Web API / C# functionality integrated with Entity Framework Core and Microsoft SQL Server. My work translated use cases into validation, authorization, account and docket state-management workflows, including role-aware permissions and docket-allocation rules.
+
+**My hands-on API testing was manual testing through Swagger UI (OpenAPI).** This repository also contains automated-test projects and test commands; their presence does not mean I personally authored or executed those tests. Other team-level capabilities, including Reports, are described in the Features section, **not** presented as my subsystem ownership.
+
+For the business problem, scope and evidence, see the [project case study](docs/CASE_STUDY.md), [use-case map](docs/FEATURE_SCOPE.md) and [safe demo walkthrough](docs/DEMO_PLAN.md).
 
 ## Setup
 
@@ -134,7 +140,7 @@ npm run build
 npm audit
 ```
 
-The latest portfolio verification passed 21 backend tests, 137 frontend tests, the production Angular build, and npm audit with zero known vulnerabilities.
+The repository includes automated-test projects and build checks; these describe available project tooling, not my personal hands-on testing. My manual API checks used Swagger UI. Results may change as the project evolves.
 
 ## Deployment and data safety
 
