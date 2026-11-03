@@ -1,0 +1,50 @@
+name: SAPS DDMS repository checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: .NET build and backend tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore solution
+        run: dotnet restore SAPS-DDMS.sln
+      - name: Build solution
+        run: dotnet build SAPS-DDMS.sln --configuration Release --no-restore
+      - name: Run repository backend tests
+        run: dotnet test SAPS.DDMS.API.Tests/SAPS.DDMS.API.Tests.csproj --configuration Release --no-build --no-restore --logger "console;verbosity=normal"
+
+  frontend:
+    name: Angular build and frontend tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: SAPS.DDMS.Frontend
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: SAPS.DDMS.Frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Build Angular application
+        run: npm run build
+      - name: Run repository frontend tests
+        run: npm test -- --watch=false
