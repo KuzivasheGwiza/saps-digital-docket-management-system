@@ -46,7 +46,11 @@ The API supplies the docket-linked evidence records and prosecutor-bundle workfl
 
 ## My contribution
 
-I personally coded the entire system, including the backend architecture and its integration with the frontend and database. On the API, I implemented or refined transactional backup/restore, assignment and reassignment rules, sensitivity handling, court/date/identity validation, configurable archive and session policies, report queries, authorization boundaries, audit recording, and related regression tests.
+I was the **primary developer of the Administration, User and Docket Management subsystems** in this team capstone. My backend responsibilities covered the C# / ASP.NET Core API functionality and Entity Framework Core / SQL Server integrations supporting account administration, user authentication and lifecycle workflows, docket registration, status controls and allocation.
+
+I manually exercised API endpoints and checked responses using **Swagger UI**. The API also includes other team-level functionality (such as reporting, backup/restore and evidence workflows) and a separate automated-test project; those are not claims that I personally developed or tested every module.
+
+See the [root project README](../README.md) and [my scope and use-case map](../docs/FEATURE_SCOPE.md) for a clear breakdown.
 
 ## Setup
 
