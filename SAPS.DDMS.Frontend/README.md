@@ -63,7 +63,11 @@ These screenshots were captured from the running application. Captions identify 
 
 ## My contribution
 
-I personally coded the entire system, including the frontend and its integration with the API and database. On the client application, I developed the role-aware screens, docket reassignment and sensitivity controls, report presentation, editable station tree, court and identity validation feedback, inactivity handling, backup/restore experience, responsive navigation, and automated component and service tests.
+I was the **primary developer of the Administration, User and Docket Management subsystems** within the larger SAPS DDMS team prototype. My frontend work included Angular / TypeScript screens and API integrations for account administration, user access and profile workflows, and docket creation, viewing, editing, archival and allocation.
+
+The broader application contains other features (including reporting, evidence, station hierarchy and backup/restore) which remain documented as **team-project capabilities**. This section does not attribute development of those subsystems or automated component tests to me. My own API verification was carried out manually with **Swagger UI**.
+
+See the [root README](../README.md) and [use-case scope](../docs/FEATURE_SCOPE.md).
 
 ## Setup
 
